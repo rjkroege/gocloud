@@ -12,7 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"hash/fnv"
-	"io/ioutil"
+//	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -103,9 +103,6 @@ func main() {
 	}
 
 
-	log.Println("dumping...", config)
-	os.Exit(0)
-
 	ctx := context.Background()
 	if *debug {
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
@@ -121,6 +118,9 @@ var (
 	demoScope = make(map[string]string)
 )
 
+// registerDemo adds an additional demo function to the the list of available
+// demos. 
+// part of the harness.
 func registerDemo(name, scope string, main func(c *http.Client, argv []string)) {
 	if demoFunc[name] != nil {
 		panic(name + " already registered")
@@ -140,6 +140,8 @@ func osUserCacheDir() string {
 	return "."
 }
 
+// tokenCacheFile builds a unique file name based on a hash of a
+// client id and secret.
 func tokenCacheFile(config *oauth2.Config) string {
 	hash := fnv.New32a()
 	hash.Write([]byte(config.ClientID))
@@ -149,6 +151,8 @@ func tokenCacheFile(config *oauth2.Config) string {
 	return filepath.Join(osUserCacheDir(), url.QueryEscape(fn))
 }
 
+// tokenFromFile reads an OAuth token from the specified cache file
+// name.
 func tokenFromFile(file string) (*oauth2.Token, error) {
 	if !*cacheToken {
 		return nil, errors.New("--cachetoken is false")
@@ -162,6 +166,7 @@ func tokenFromFile(file string) (*oauth2.Token, error) {
 	return t, err
 }
 
+// saveToken saves an OAuth token to the specified cache file.
 func saveToken(file string, token *oauth2.Token) {
 	f, err := os.Create(file)
 	if err != nil {
@@ -172,6 +177,10 @@ func saveToken(file string, token *oauth2.Token) {
 	gob.NewEncoder(f).Encode(token)
 }
 
+
+
+// newOAuthClient creates a new oauth2 authenticated http.Client given a
+// context and configuration.
 func newOAuthClient(ctx context.Context, config *oauth2.Config) *http.Client {
 	cacheFile := tokenCacheFile(config)
 	token, err := tokenFromFile(cacheFile)
@@ -185,6 +194,8 @@ func newOAuthClient(ctx context.Context, config *oauth2.Config) *http.Client {
 	return config.Client(ctx, token)
 }
 
+// tokenFromWeb gets an OAuth token from the web.
+// really? What does this do?
 func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	ch := make(chan string)
 	randState := fmt.Sprintf("st%d", time.Now().UnixNano())
@@ -224,7 +235,7 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 }
 
 func openURL(url string) {
-	try := []string{"xdg-open", "google-chrome", "open"}
+	try := []string{"xdg-open", "open", "google-chrome"}
 	for _, bin := range try {
 		err := exec.Command(bin, url).Run()
 		if err == nil {
@@ -234,13 +245,14 @@ func openURL(url string) {
 	log.Printf("Error opening URL in browser.")
 }
 
-func valueOrFileContents(value string, filename string) string {
-	if value != "" {
-		return value
-	}
-	slurp, err := ioutil.ReadFile(filename)
-	if err != nil {
-		log.Fatalf("Error reading %q: %v", filename, err)
-	}
-	return strings.TrimSpace(string(slurp))
-}
+
+//func valueOrFileContents(value string, filename string) string {
+//	if value != "" {
+//		return value
+//	}
+//	slurp, err := ioutil.ReadFile(filename)
+//	if err != nil {
+//		log.Fatalf("Error reading %q: %v", filename, err)
+//	}
+//	return strings.TrimSpace(string(slurp))
+//}
