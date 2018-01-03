@@ -60,16 +60,22 @@ func main() {
 	}
 
 
-// TODO(rjk): use the name as the command to run if it matches something encoded
-// here. So that I can write a single multi-command à la busybox etc.
-// TODO(rjk): clean up how the demo is populated.
-	name := flag.Arg(0)
+// TODO(rjk): clean up how the demo is populated
+// What does the above mean anyway? I should write more detailed TODO
+
+	name := filepath.Base(os.Args[0])
 	demo, ok := demoFunc[name]
+	args := flag.Args()
 	if !ok {
-		usage()
+		// Or the name might be the first argument.
+		name = flag.Arg(0)
+		demo, ok = demoFunc[name]
+		args = flag.Args()[1:]
+		if !ok {
+			usage()
+		}
 	}
 
-	
 
 // TODO(rjk):
 // ----------------- rip this out ---------------
@@ -110,7 +116,7 @@ func main() {
 		})
 	}
 	c := newOAuthClient(ctx, config)
-	demo(c, flag.Args()[1:])
+	demo(c, args)
 }
 
 var (
