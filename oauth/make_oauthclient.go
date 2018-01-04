@@ -4,27 +4,26 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"os"
+	"hash/fnv"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"time"
-	"runtime"
-	"path/filepath"
-	"hash/fnv"
-	"strings"
+	"os"
 	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"time"
 
 	// Can't I use the non-experimental one?
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
-
 )
 
-// GetConfig retrieves configuration from the specified configfile path. 
-func GetConfigMap(configfile string)  (map[string]string, error) {
+// GetConfig retrieves configuration from the specified configfile path.
+func GetConfigMap(configfile string) (map[string]string, error) {
 
 	f, err := os.Open(configfile)
 	if err != nil {
@@ -42,7 +41,6 @@ func GetConfigMap(configfile string)  (map[string]string, error) {
 	}
 	return configmap, nil
 }
-
 
 func FriendlyNewOauthClient(client_id, client_secret, scope string, cacheToken bool, trans http.RoundTripper) (*http.Client, context.Context) {
 	ctx := context.Background()
@@ -116,7 +114,6 @@ func tokenFromWeb(ctx context.Context, config *oauth2.Config) *oauth2.Token {
 	return token
 }
 
-
 // saveToken saves an OAuth token to the specified cache file.
 func saveToken(file string, token *oauth2.Token) {
 	f, err := os.Create(file)
@@ -175,4 +172,3 @@ func openURL(url string) {
 	}
 	log.Printf("Error opening URL in browser.")
 }
-

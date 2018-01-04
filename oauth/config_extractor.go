@@ -37,6 +37,5 @@ func FindProperties(r io.Reader, wanted map[string]string) error {
 		return err
 	}
 	hunter(m, wanted)
-	return nil	
+	return nil
 }
-

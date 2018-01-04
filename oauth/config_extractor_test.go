@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-
 const json_file = `{
 	"installed":{
 		"auth_uri":"https://accounts.google.com/o/oauth2/auth",
@@ -22,7 +21,7 @@ const json_file = `{
 
 func TestConfigExtractor(t *testing.T) {
 	reader := strings.NewReader(json_file)
-	wanted := map[string]string{"client_secret":""}
+	wanted := map[string]string{"client_secret": ""}
 	FindProperties(reader, wanted)
 	if got, expected := wanted["client_secret"], "not telling"; got != expected {
 		t.Fatalf("got %v, wanted %v", got, wanted)

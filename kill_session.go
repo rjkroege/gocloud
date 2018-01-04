@@ -38,7 +38,6 @@ func init() {
 	registerDemo("list", scopes, listInstancesMain)
 }
 
-
 func listInstancesMain(client *http.Client, argv []string) {
 	if len(argv) != 2 {
 		fmt.Fprintln(os.Stderr, "Usage: list project_id zone")
@@ -64,12 +63,11 @@ func listInstancesMain(client *http.Client, argv []string) {
 
 	log.Println("Got compute.Images.List")
 
-	for _, inst :=  range res.Items {
-		log.Println(inst.Name,  inst.MachineType)
+	for _, inst := range res.Items {
+		log.Println(inst.Name, inst.MachineType)
 	}
 
 }
-
 
 func computeMain(client *http.Client, argv []string) {
 	if len(argv) != 2 {
