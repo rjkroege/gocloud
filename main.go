@@ -78,27 +78,11 @@ func main() {
 		}
 	}
 
-
-// TODO(rjk):
-// ----------------- rip this out ---------------
-	// Open a configuration file.
-// ---------------
-
+	// Get OAuth configuration.
 	configmap, err  := oauth.GetConfigMap(*configfile)
 	if err != nil {
 		log.Fatalln("Couldn't open oauth configuration", err)
 	}
-
-
-	// Original...
-	// TODO(rjk): Can I pull this out?
-	config := &oauth2.Config{
-		ClientID:     configmap["client_id"],
-		ClientSecret: configmap["client_secret"],
-		Endpoint:     google.Endpoint,
-		Scopes:       []string{demoScope[name]},
-	}
-
 
 	ctx := context.Background()
 	if *debug {
@@ -106,8 +90,24 @@ func main() {
 			Transport: &logTransport{http.DefaultTransport},
 		})
 	}
-	c := newOAuthClient(ctx, config)
+
+	c := FriendlyNewOauthClient(ctx,
+		configmap["client_id"],
+		configmap["client_secret"],
+		demoScope[name])
+
+//	c := newOAuthClient(ctx, config)
 	demo(c, args)
+}
+
+func FriendlyNewOauthClient(ctx context.Context, client_id, client_secret, scope string) *http.Client {
+	config := &oauth2.Config{
+		ClientID:     client_id,
+		ClientSecret: client_secret,
+		Endpoint:     google.Endpoint,
+		Scopes:       []string{scope},
+	}
+	return newOAuthClient(ctx, config)
 }
 
 var (
