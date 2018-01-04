@@ -27,6 +27,8 @@ import (
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+
+	"github.com/rjkroege/sessionender/oauth"
 )
 
 // Flags
@@ -80,23 +82,12 @@ func main() {
 // TODO(rjk):
 // ----------------- rip this out ---------------
 	// Open a configuration file.
-	f, err := os.Open(*configfile)
-	if err != nil {
-		log.Fatalf("configfile %s can't be opened.", *configfile)
-	}
-	defer f.Close()
-
-	// I can configure this for more as I discover needing them.
-	configmap := map[string]string{
-		"client_secret": "",
-		"client_id":     "",
-	}
-	FindProperties(f, configmap)
-	f.Close()
 // ---------------
 
-
-
+	configmap, err  := oauth.GetConfigMap(*configfile)
+	if err != nil {
+		log.Fatalln("Couldn't open oauth configuration", err)
+	}
 
 
 	// Original...

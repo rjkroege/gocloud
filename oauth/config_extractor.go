@@ -1,7 +1,7 @@
 // This is replicated from specialremote.
 // TODO(refactor that there)
 
-package main
+package oauth
 
 import (
 	"encoding/json"
