@@ -13,8 +13,13 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"context"
 
-	"github.com/rjkroege/sessionender/oauth"
+//	"github.com/rjkroege/sessionender/oauth"
+        "golang.org/x/oauth2/google"
+        "google.golang.org/api/compute/v1"
+	"golang.org/x/oauth2"
+
 )
 
 // Flags
@@ -54,16 +59,22 @@ func main() {
 		}
 	}
 
+/*
 	// Get OAuth configuration.
 	configmap, err := oauth.GetConfigMap(*configfile)
 	if err != nil {
 		log.Fatalln("Couldn't open oauth configuration", err)
 	}
 
+*/
+
 	transport := http.DefaultTransport
 	if *debug {
 		transport = &logTransport{http.DefaultTransport}
 	}
+
+/*
+	The old way.
 
 	// TODO(rjk): push logging into a separate place
 	c, _ := oauth.FriendlyNewOauthClient(
@@ -73,8 +84,25 @@ func main() {
 		*cacheToken,
 		transport)
 
+*/
+
+// ------ can pull this out -----------
+	// The new way
+	ctx := context.Background()
+	if transport != http.DefaultTransport {
+		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
+			Transport: transport,
+		})
+	}
+	client, err := google.DefaultClient(ctx, compute.ComputeScope)
+	if err != nil {
+		log.Fatalln("Can't setup an OAuth connection because", err)
+	}
+
+
+
 	//	c := newOAuthClient(ctx, config)
-	demo(c, args)
+	demo(client, args)
 }
 
 var (
