@@ -15,20 +15,17 @@ import (
 	"path/filepath"
 	"context"
 
-//	"github.com/rjkroege/sessionender/oauth"
         "golang.org/x/oauth2/google"
-        "google.golang.org/api/compute/v1"
 	"golang.org/x/oauth2"
 
 )
 
 // Flags
 var (
-	cacheToken = flag.Bool("cachetoken", true, "cache the OAuth 2.0 token")
 	debug      = flag.Bool("debug", false, "show HTTP traffic")
-	configfile = flag.String("configfile", "config.json", "Name of configuration JSON file containing a ClientID and a ClientSecret JSON")
 )
 
+// TODO(rjk): Update the usage message.
 func usage() {
 	fmt.Fprintf(os.Stderr, "Usage: go-api-demo <api-demo-name> [api name args]\n\nPossible APIs:\n\n")
 	for n := range demoFunc {
@@ -59,49 +56,16 @@ func main() {
 		}
 	}
 
-/*
-	// Get OAuth configuration.
-	configmap, err := oauth.GetConfigMap(*configfile)
-	if err != nil {
-		log.Fatalln("Couldn't open oauth configuration", err)
-	}
-
-*/
-
-	transport := http.DefaultTransport
-	if *debug {
-		transport = &logTransport{http.DefaultTransport}
-	}
-
-/*
-	The old way.
-
-	// TODO(rjk): push logging into a separate place
-	c, _ := oauth.FriendlyNewOauthClient(
-		configmap["client_id"],
-		configmap["client_secret"],
-		demoScope[name],
-		*cacheToken,
-		transport)
-
-*/
-
-// ------ can pull this out -----------
-	// The new way
 	ctx := context.Background()
-	if transport != http.DefaultTransport {
+	if *debug {
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
-			Transport: transport,
+			Transport: &logTransport{http.DefaultTransport},
 		})
 	}
-	client, err := google.DefaultClient(ctx, compute.ComputeScope)
+	client, err := google.DefaultClient(ctx, demoScope[name])
 	if err != nil {
 		log.Fatalln("Can't setup an OAuth connection because", err)
 	}
-
-
-
-	//	c := newOAuthClient(ctx, config)
 	demo(client, args)
 }
 
