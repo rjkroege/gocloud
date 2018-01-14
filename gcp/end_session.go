@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gcp
 
 import (
 	"log"
@@ -21,7 +21,13 @@ import (
 
 	compute "google.golang.org/api/compute/v1"
 	"cloud.google.com/go/compute/metadata"
+	"github.com/rjkroege/sessionender/harness"
 )
+
+type endSessionCmd struct {
+	listInstanceCmd
+}
+
 
 func init() {
 	scopes := strings.Join([]string{
@@ -29,15 +35,10 @@ func init() {
 	}, " ")
 
 	// Associates endsessionMain with the main.
-	registerDemo("endsession", scopes, endsessionMain)
+	harness. AddSubCommand(&endSessionCmd{listInstanceCmd{"endsession", scopes, "endsession [projectId zone instance]"}})
 }
 
-func endsessionMain(client *http.Client, argv []string) {
-	// This command is intended to be used on a single instance and
-	// will cause the instance to shut itself down. Otherwise, it
-	// will permit running a command to end a running instance.
-
-
+func (c *endSessionCmd) Execute(client *http.Client, argv []string) {
 	var projectid, zone, instance string
 
 	if metadata.OnGCE() {
@@ -67,7 +68,6 @@ func endsessionMain(client *http.Client, argv []string) {
 				log.Fatalln("no zone from argument or metadata")
 			}
 		}
-
 		
 		instance, err =  metadata.InstanceName()
 		if err != nil {

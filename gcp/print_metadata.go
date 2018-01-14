@@ -1,26 +1,29 @@
-package main
+package gcp
 
 import (
 	"log"
 	"net/http"
-	"strings"
-	
 
 	"cloud.google.com/go/compute/metadata"
+	"github.com/rjkroege/sessionender/harness"
 )
 
-func init() {
-	scopes := strings.Join([]string{
-//		compute.ComputeScope,
-	}, " ")
-
-	// Associates computeMain with the compute word.
-	//  Could just as well be sessionender for example. Or something
-	//  else.
-	registerDemo("printmeta", scopes, printmetadataMain)
+type printmetaCmd struct {
+	listInstanceCmd
 }
 
-func printmetadataMain(client *http.Client, argv []string) {
+
+func init() {
+	harness. AddSubCommand(&printmetaCmd{listInstanceCmd{
+		"printmeta", 
+		"",
+		"printmeta displays a sampling of metadata on an instance",
+	}})
+}
+
+func (c *printmetaCmd) Execute(client *http.Client, argv []string) {
+
+	log.Println("printmeta trying to do something")
 
 	if !metadata.OnGCE() {
 		log.Fatalf("printmeta only works on GCE instances") 

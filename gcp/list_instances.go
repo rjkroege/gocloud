@@ -12,36 +12,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gcp
 
 import (
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	compute "google.golang.org/api/compute/v1"
+	"github.com/rjkroege/sessionender/harness"
 )
+
+type listInstanceCmd struct {
+	name string	
+	scopes string	
+	usage string
+}
+
+
+func (c *listInstanceCmd) Scope() string {
+	return c.scopes
+}
+func (c *listInstanceCmd) Name() string {
+	return c.name
+}
+func (c *listInstanceCmd) Usage() string {
+	return c.usage
+}
 
 func init() {
 	scopes := strings.Join([]string{
 		compute.ComputeScope,
 	}, " ")
 
-	// Associates computeMain with the compute word.
-	//  Could just as well be sessionender for example. Or something
-	//  else.
-	registerDemo("list", scopes, listInstancesMain)
+	harness. AddSubCommand(&listInstanceCmd{"list", scopes, "list project_id zone"})
 }
 
-func listInstancesMain(client *http.Client, argv []string) {
+func (c *listInstanceCmd) Execute(client *http.Client, argv []string) {
 	if len(argv) != 2 {
-		fmt.Fprintln(os.Stderr, "Usage: list project_id zone")
+		log.Println("bad number of args", c.Usage())
 		return
 	}
-
-	// TODO(rjk): default the zone. Even better, keep it in the cache file?
 
 	service, err := compute.New(client)
 	if err != nil {
@@ -63,6 +74,5 @@ func listInstancesMain(client *http.Client, argv []string) {
 	for _, inst := range res.Items {
 		log.Println(inst.Name, inst.MachineType)
 	}
-
 }
 

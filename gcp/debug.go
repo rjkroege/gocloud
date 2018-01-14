@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package gcp
 
 import (
 	"bytes"
@@ -26,6 +26,11 @@ import (
 type logTransport struct {
 	rt http.RoundTripper
 }
+
+func NewTransport(trans http.RoundTripper) http.RoundTripper {
+	return &logTransport{http.DefaultTransport}
+}
+
 
 func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var buf bytes.Buffer
