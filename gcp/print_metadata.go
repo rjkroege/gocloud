@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -21,9 +22,7 @@ func init() {
 	}})
 }
 
-func (c *printmetaCmd) Execute(client *http.Client, argv []string) {
-
-	log.Println("printmeta trying to do something")
+func (c *printmetaCmd) Execute(client *http.Client, argv []string) error {
 
 	if !metadata.OnGCE() {
 		log.Fatalf("printmeta only works on GCE instances") 
@@ -31,22 +30,22 @@ func (c *printmetaCmd) Execute(client *http.Client, argv []string) {
 	
 	pid, err :=  metadata.ProjectID()
 	if err != nil {
-		log.Println("couldn't fetch the projectid because", err)
+		return fmt.Errorf("couldn't fetch the projectid because %v", err)
 	} else {
 		log.Println(pid)
 	}
 	zone, err :=  metadata.Zone()
 	if err != nil {
-		log.Println("couldn't fetch the zone because", err)
+		return fmt.Errorf("couldn't fetch the zone because %v", err)
 	} else {
 		log.Println(zone)
 	}
 
 	name, err :=  metadata.InstanceName()
 	if err != nil {
-		log.Println("couldn't fetch the name because", err)
+		return fmt.Errorf("couldn't fetch the name because %v", err)
 	} else {
 		log.Println(name)
 	}
-	
+	return nil
 }

@@ -15,7 +15,7 @@
 package gcp
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -38,7 +38,7 @@ func init() {
 	harness. AddSubCommand(&endSessionCmd{listInstanceCmd{"endsession", scopes, "endsession [projectId zone instance]"}})
 }
 
-func (c *endSessionCmd) Execute(client *http.Client, argv []string) {
+func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 	var projectid, zone, instance string
 
 	if metadata.OnGCE() {
@@ -47,42 +47,42 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) {
 
 		projectid, err =  metadata.ProjectID()
 		if err != nil {
-			log.Println("couldn't fetch the projectid because", err)
+			return fmt.Errorf("couldn't fetch the projectid because %v", err)
 
 			if len(argv) > argi {
 				projectid = argv[argi]
 				argi++
 			} else {
-				log.Fatalln("no projectid from argument or metadata")
+				return fmt.Errorf("no projectid from argument or metadata")
 			}
 		}
 
 		zone, err =  metadata.Zone()
 		if err != nil {
-			log.Println("couldn't fetch the zone because", err)
+			return fmt.Errorf("couldn't fetch the zone because", err)
 
 			if len(argv) > argi {
 				zone = argv[argi]
 				argi++
 			} else {
-				log.Fatalln("no zone from argument or metadata")
+				return fmt.Errorf("no zone from argument or metadata")
 			}
 		}
 		
 		instance, err =  metadata.InstanceName()
 		if err != nil {
-			log.Println("couldn't fetch the instance because", err)
+			return fmt.Errorf("couldn't fetch the instance because", err)
 
 			if len(argv) > argi {
 				instance = argv[argi]
 				argi++
 			} else {
-				log.Fatalln("no instance from argument or metadata")
+				return fmt.Errorf("no instance from argument or metadata")
 			}
 		}
 	} else {
 		if len(argv) != 3 {
-			log.Fatalln("Usage: endsession project_id zone instance")
+			return fmt.Errorf("Invalid argument list. Usage %s", c.Usage())
 		}
 
 		projectid = argv[0]
@@ -92,16 +92,14 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) {
 
 	service, err := compute.New(client)
 	if err != nil {
-		log.Fatalf("Unable to create Compute service: %v", err)
+		return fmt.Errorf("Unable to create Compute service: %v", err)
 	}
-
-
-	log.Println("shutting down instance", projectid, zone, instance)
 
 	_, err = service.Instances.Delete(projectid, zone, instance).Do()
 	if err != nil { 
-		log.Println("Failed to delete instance", instance)
-		return
+		return fmt.Errorf("Failed to delete instance %s because %v", instance, err)
 	} 
+	return nil
 }
+
 

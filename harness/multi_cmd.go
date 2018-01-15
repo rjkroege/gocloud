@@ -13,7 +13,8 @@ import (
 
 type Command interface {
 	// Execute runs the command with the provided client and arguments
-	Execute(*http.Client, []string)
+	// and returns any error that precluded the command from executing.
+	Execute(*http.Client, []string) error
 
 	// Scope returns the authentication scope needed for this command
 	Scope() string

@@ -52,8 +52,6 @@ func main() {
 		}
 	}
 
-	log.Println("supposed have a cmd now")
-
 	ctx := context.Background()
 	if *debug {
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
@@ -65,8 +63,9 @@ func main() {
 		log.Fatalln("Can't setup an OAuth connection because", err)
 	}
 
-	log.Println("attempting to execute", cmd.Name())
-	
-	cmd.Execute(client, args)
+	if err := cmd.Execute(client, args); err != nil {
+		log.Println("failed to execute", cmd.Name(), "because", err)
+	}
 }
+
 

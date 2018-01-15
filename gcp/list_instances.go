@@ -15,6 +15,7 @@
 package gcp
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -48,15 +49,14 @@ func init() {
 	harness. AddSubCommand(&listInstanceCmd{"list", scopes, "list project_id zone"})
 }
 
-func (c *listInstanceCmd) Execute(client *http.Client, argv []string) {
+func (c *listInstanceCmd) Execute(client *http.Client, argv []string) error {
 	if len(argv) != 2 {
-		log.Println("bad number of args", c.Usage())
-		return
+		return fmt.Errorf("Wrong number of args. Usage: %s", c.Usage())
 	}
 
 	service, err := compute.New(client)
 	if err != nil {
-		log.Fatalf("Unable to create Compute service: %v", err)
+		return fmt.Errorf("Unable to create Compute service: %v", err)
 	}
 
 	projectId := argv[0]
@@ -65,14 +65,12 @@ func (c *listInstanceCmd) Execute(client *http.Client, argv []string) {
 	// List the current instances.
 	res, err := service.Instances.List(projectId, zone).Do()
 	if err != nil {
-		log.Println("Getting instance list failed:", err)
-		return
+		return fmt.Errorf("Getting instance list failed: %v", err)
 	}
-
-	log.Println("Got compute.Images.List")
 
 	for _, inst := range res.Items {
 		log.Println(inst.Name, inst.MachineType)
 	}
+	return nil
 }
 
