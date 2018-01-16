@@ -4,8 +4,8 @@ package harness
 // subcommands in a single executable.
 
 import (
-	"io"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"

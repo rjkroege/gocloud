@@ -8,4 +8,3 @@ func RunWho() ([]byte, error) {
 	cmd := exec.Command("/usr/bin/who")
 	return cmd.Output()
 }
-

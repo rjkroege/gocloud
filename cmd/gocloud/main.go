@@ -7,23 +7,23 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
-	"context"
 
-        "golang.org/x/oauth2/google"
-	"golang.org/x/oauth2"
 	"github.com/rjkroege/sessionender/gcp"
 	"github.com/rjkroege/sessionender/harness"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 // Flags
 var (
-	debug      = flag.Bool("debug", false, "show HTTP traffic")
+	debug = flag.Bool("debug", false, "show HTTP traffic")
 )
 
 // TODO(rjk): Update the usage message.
@@ -67,5 +67,3 @@ func main() {
 		log.Println("failed to execute", cmd.Name(), "because", err)
 	}
 }
-
-

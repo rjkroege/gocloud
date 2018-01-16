@@ -1,11 +1,11 @@
 package who
 
 import (
-	"time"
 	"bufio"
 	"bytes"
 	"log"
 	"path/filepath"
+	"time"
 )
 
 type WhoList map[string]time.Time

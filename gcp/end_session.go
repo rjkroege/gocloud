@@ -19,19 +19,18 @@ import (
 	"net/http"
 	"strings"
 
-	compute "google.golang.org/api/compute/v1"
 	"cloud.google.com/go/compute/metadata"
 	"github.com/rjkroege/sessionender/harness"
+	compute "google.golang.org/api/compute/v1"
 )
 
 type endSessionCmd struct {
 	listInstanceCmd
 }
 
-
 func init() {
 	// Associates endsessionMain with the main.
-	harness. AddSubCommand(MakeEndSession())
+	harness.AddSubCommand(MakeEndSession())
 }
 
 func MakeEndSession() harness.Command {
@@ -49,7 +48,7 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 		argi := 0
 		var err error
 
-		projectid, err =  metadata.ProjectID()
+		projectid, err = metadata.ProjectID()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the projectid because %v", err)
 
@@ -61,7 +60,7 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 			}
 		}
 
-		zone, err =  metadata.Zone()
+		zone, err = metadata.Zone()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the zone because", err)
 
@@ -72,8 +71,8 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 				return fmt.Errorf("no zone from argument or metadata")
 			}
 		}
-		
-		instance, err =  metadata.InstanceName()
+
+		instance, err = metadata.InstanceName()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the instance because", err)
 
@@ -100,10 +99,8 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 	}
 
 	_, err = service.Instances.Delete(projectid, zone, instance).Do()
-	if err != nil { 
+	if err != nil {
 		return fmt.Errorf("Failed to delete instance %s because %v", instance, err)
-	} 
+	}
 	return nil
 }
-
-

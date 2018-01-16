@@ -31,7 +31,6 @@ func NewTransport(trans http.RoundTripper) http.RoundTripper {
 	return &logTransport{http.DefaultTransport}
 }
 
-
 func (t *logTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	var buf bytes.Buffer
 

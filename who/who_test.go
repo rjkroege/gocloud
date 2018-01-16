@@ -4,7 +4,6 @@ import (
 	"testing"
 )
 
-
 const who_out_valid = `rjkroege pts/0        2018-01-10 10:58 (135.23.127.39)
 `
 
@@ -32,7 +31,7 @@ func TestParseWho(t *testing.T) {
 		if len(got) != 1 {
 			t.Fatal("expected 1 val, got", got)
 		}
-		if _, ok  := got["/dev/pts/0"]; !ok {
+		if _, ok := got["/dev/pts/0"]; !ok {
 			t.Fatal("expected val to be present but", got)
 		}
 	}

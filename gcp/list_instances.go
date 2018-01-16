@@ -20,16 +20,15 @@ import (
 	"net/http"
 	"strings"
 
-	compute "google.golang.org/api/compute/v1"
 	"github.com/rjkroege/sessionender/harness"
+	compute "google.golang.org/api/compute/v1"
 )
 
 type listInstanceCmd struct {
-	name string	
-	scopes string	
-	usage string
+	name   string
+	scopes string
+	usage  string
 }
-
 
 func (c *listInstanceCmd) Scope() string {
 	return c.scopes
@@ -46,7 +45,7 @@ func init() {
 		compute.ComputeScope,
 	}, " ")
 
-	harness. AddSubCommand(&listInstanceCmd{"list", scopes, "list project_id zone"})
+	harness.AddSubCommand(&listInstanceCmd{"list", scopes, "list project_id zone"})
 }
 
 func (c *listInstanceCmd) Execute(client *http.Client, argv []string) error {
@@ -73,4 +72,3 @@ func (c *listInstanceCmd) Execute(client *http.Client, argv []string) error {
 	}
 	return nil
 }
-

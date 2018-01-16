@@ -2,8 +2,8 @@ package who
 
 import (
 	"log"
-	"time"
 	"os"
+	"time"
 )
 
 func TimestampWhoList(wl WhoList) error {
@@ -33,7 +33,7 @@ func UpdateWhoList(currentwl WhoList) error {
 	whos, err := RunWho()
 	if err != nil {
 		return err
-	}	
+	}
 
 	newwl, err := ParseWho(whos)
 	if err != nil {
@@ -41,8 +41,8 @@ func UpdateWhoList(currentwl WhoList) error {
 	}
 
 	MergeWhoList(currentwl, newwl)
-	
-	if err :=TimestampWhoList(currentwl); err != nil {
+
+	if err := TimestampWhoList(currentwl); err != nil {
 		return err
 	}
 
