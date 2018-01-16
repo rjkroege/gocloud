@@ -30,12 +30,16 @@ type endSessionCmd struct {
 
 
 func init() {
+	// Associates endsessionMain with the main.
+	harness. AddSubCommand(MakeEndSession())
+}
+
+func MakeEndSession() harness.Command {
 	scopes := strings.Join([]string{
 		compute.ComputeScope,
 	}, " ")
 
-	// Associates endsessionMain with the main.
-	harness. AddSubCommand(&endSessionCmd{listInstanceCmd{"endsession", scopes, "endsession [projectId zone instance]"}})
+	return &endSessionCmd{listInstanceCmd{"endsession", scopes, "endsession [projectId zone instance]"}}
 }
 
 func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {

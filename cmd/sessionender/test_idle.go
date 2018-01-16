@@ -3,16 +3,19 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"time"
 
+        "golang.org/x/oauth2/google"
 	"github.com/rjkroege/sessionender/who"
+	"github.com/rjkroege/sessionender/gcp"
 
 )
 
 
-const  idletime = time.Minute * 2
+const  idletime = time.Minute * 15
 
 func main() {
 	logfile, err := os.Create("otherlog")
@@ -24,7 +27,7 @@ func main() {
 
 	
 	wholist := who.WhoList{}
-	for i := 0; i < 1000 ; i++  {
+	for {
 		waiter := time.NewTimer(time.Minute)
 		<- waiter.C
 
@@ -36,10 +39,16 @@ func main() {
 
 		if who.AreIdle(wholist, idletime) {
 			log.Println("Would now do something responding to idleness")
-			// TODO(rjk): Here is where I should shutdown the node.
+
+			cmd := gcp.MakeEndSession()
+			ctx := context.Background()
+			client, err := google.DefaultClient(ctx, cmd.Scope())
+			if err != nil {
+				log.Println("Can't setup an OAuth connection because", err)
+			}
+			if err := cmd.Execute(client, []string{}); err != nil {
+				log.Println("failed to execute", cmd.Name(), "because", err)
+			}
 		}
-
-
 	}	
-
 }
