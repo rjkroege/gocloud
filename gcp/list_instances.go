@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/rjkroege/sessionender/harness"
+	"github.com/rjkroege/gocloud/harness"
 	compute "google.golang.org/api/compute/v1"
 )
 

@@ -15,8 +15,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/rjkroege/sessionender/gcp"
-	"github.com/rjkroege/sessionender/harness"
+	"github.com/rjkroege/gocloud/gcp"
+	"github.com/rjkroege/gocloud/harness"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )

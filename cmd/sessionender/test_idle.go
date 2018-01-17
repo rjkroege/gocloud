@@ -8,8 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/rjkroege/sessionender/gcp"
-	"github.com/rjkroege/sessionender/who"
+	"github.com/rjkroege/gocloud/gcp"
+	"github.com/rjkroege/gocloud/who"
 	"golang.org/x/oauth2/google"
 )
 

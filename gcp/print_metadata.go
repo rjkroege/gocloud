@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/rjkroege/sessionender/harness"
+	"github.com/rjkroege/gocloud/harness"
 )
 
 type printmetaCmd struct {

@@ -20,7 +20,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/rjkroege/sessionender/harness"
+	"github.com/rjkroege/gocloud/harness"
 	compute "google.golang.org/api/compute/v1"
 )
 
