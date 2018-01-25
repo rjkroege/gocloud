@@ -1,24 +1,19 @@
 package who
 
 import (
-	"log"
 	"os"
 	"time"
 )
 
-func TimestampWhoList(wl WhoList) error {
-	var savederr error
+func TimestampWhoList(wl WhoList) {
 	for k, _ := range wl {
 		fi, err := os.Stat(k)
 		if err != nil {
-			log.Println("couldn't stat pty path", k, "because", err)
 			delete(wl, k)
-			// I should aggregate them.
-			savederr = err
+			continue
 		}
 		wl[k] = fi.ModTime()
 	}
-	return savederr
 }
 
 func MergeWhoList(oldwl, newwl WhoList) {
@@ -42,10 +37,7 @@ func UpdateWhoList(currentwl WhoList) error {
 
 	MergeWhoList(currentwl, newwl)
 
-	if err := TimestampWhoList(currentwl); err != nil {
-		return err
-	}
-
+	TimestampWhoList(currentwl)
 	return nil
 }
 

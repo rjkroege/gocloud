@@ -4,8 +4,8 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
-	"os"
 	"time"
 
 	"github.com/rjkroege/gocloud/gcp"
@@ -13,29 +13,43 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-const idletime = time.Minute * 15
+
+// Flags
+var (
+	delaytime = flag.Int("delay", 60 * 15, "Time in seconds before indicating idleness.")
+	dryrun = flag.Bool("n", false, "log copiously and don't try to shut down for realz")
+)
 
 func main() {
-	logfile, err := os.Create("otherlog")
-	if err != nil {
-		log.Fatalln("can't open file to log because", err)
-	}
-	// So that I don't perturb standard I/O with log messages.
-	log.SetOutput(logfile)
+	flag.Parse()
+	idletime := time.Duration(*delaytime) * time.Second
 
+	if *dryrun {
+		log.Println("waiting for", idletime)
+	}
+	
 	wholist := who.WhoList{}
+	if err := who.UpdateWhoList(wholist); err != nil {
+		log.Println("UpdateWhoList had a sad because", err)
+	}
+	
+	if *dryrun {
+		log.Println("starting wholist", wholist)
+	}
+
 	for {
-		waiter := time.NewTimer(time.Minute)
+		waiter := time.NewTimer(idletime)
 		<-waiter.C
 
 		if err := who.UpdateWhoList(wholist); err != nil {
 			log.Println("UpdateWhoList had a sad because", err)
 		}
 
-		log.Println("WhoList: ", wholist)
-
 		if who.AreIdle(wholist, idletime) {
-			log.Println("Would now do something responding to idleness")
+			if *dryrun {
+				log.Println("Would now do something responding to idleness")
+				continue
+			}
 
 			cmd := gcp.MakeEndSession()
 			ctx := context.Background()
@@ -46,6 +60,10 @@ func main() {
 			if err := cmd.Execute(client, []string{}); err != nil {
 				log.Println("failed to execute", cmd.Name(), "because", err)
 			}
+		}
+
+		if *dryrun {
+			log.Println("not idle.")
 		}
 	}
 }
