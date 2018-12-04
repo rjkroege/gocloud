@@ -48,7 +48,6 @@ func readuserdata(dirs []string) []user {
 			log.Printf("can't read %s/user.yaml because %v. Skipping: ", d, err)
 			fd.Close()
 			continue
-
 		}
 		fd.Close()
 
@@ -76,8 +75,6 @@ func readservicedefn(dirs []string) []fileentry {
 			log.Printf("can't find service files in %d because %v. Skipping", d, err)
 			continue
 		}
-
-		log.Println("possible services", sfiles)
 
 		for _, fn := range sfiles {
 			fd, err := os.Open(fn)
@@ -179,9 +176,7 @@ func main() {
 	// Each directory is expected to contain a service definition (a file ending
 	// with the service suffix) and a user.yaml file that specifies the uid and user
 	// name for this service.
-
-	log.Println("dirs:", dirs)
-
+	//
 	// If any errors occur, the cloudconfig file is probably not valid.
 
 	fes := readservicedefn(dirs)
@@ -193,8 +188,9 @@ func main() {
 
 	d, err := yaml.Marshal(config)
 	if err != nil {
-		log.Fatalf("error: %v", err)
+		log.Fatalf("can't make yaml from data error: %v", err)
 	}
-	fmt.Printf("--- m dump:\n%s\n\n", string(d))
-
+	if _, err := os.Stdout.Write(d); err != nil {
+		log.Fatalf("can't emit final result error: %v", err)
+	}
 }
