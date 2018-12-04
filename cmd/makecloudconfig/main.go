@@ -1,21 +1,20 @@
 package main
 
 import (
-	"log"
 	"flag"
-	"path/filepath"
 	"fmt"
-	"os"
 	"io/ioutil"
+	"log"
+	"os"
+	"path/filepath"
 
 	yaml "gopkg.in/yaml.v2"
-
 )
 
 // user holds a single cloudconfig user entry.
 type user struct {
 	Name string
-	Uid int
+	Uid  int
 }
 
 // fileentry holds a single file to write.
@@ -24,20 +23,18 @@ type fileentry struct {
 	// TODO(rjk): does it parse this a number? It ends up as one for the
 	// system call.
 	Permissions int
-	Owner string
-	Content string
+	Owner       string
+	Content     string
 }
 
 type cloudconfig struct {
-	Users []user
+	Users       []user
 	Write_files []fileentry
-	Runcmd []string
+	Runcmd      []string
 }
 
-
-
 // readuserdata reads per-user configuration from each service directory.
-func readuserdata(dirs []string)  []user {
+func readuserdata(dirs []string) []user {
 	userslist := make([]user, 0, len(dirs))
 	for _, d := range dirs {
 		fd, err := os.Open(filepath.Join(d, "user.yaml"))
@@ -48,21 +45,21 @@ func readuserdata(dirs []string)  []user {
 
 		userraw, err := ioutil.ReadAll(fd)
 		if err != nil {
-			log.Printf("can't read %s/user.yaml because %v. Skipping: ", d, err)	
+			log.Printf("can't read %s/user.yaml because %v. Skipping: ", d, err)
 			fd.Close()
 			continue
-			
+
 		}
 		fd.Close()
 
 		var u user
 		if err := yaml.Unmarshal(userraw, &u); err != nil {
-			log.Printf("can't decode %s/user.yaml because %v. Skipping: ", d, err)	
+			log.Printf("can't decode %s/user.yaml because %v. Skipping: ", d, err)
 			continue
 		}
-	
+
 		if u.Name == "" {
-			u.Name = 	filepath.Base(d)
+			u.Name = filepath.Base(d)
 		}
 		userslist = append(userslist, u)
 	}
@@ -74,36 +71,36 @@ func readservicedefn(dirs []string) []fileentry {
 	for _, d := range dirs {
 		// TODO(rjk): I only support service files. Should I
 		// consider supporting more kinds of files? Multiple service files are possible
-		sfiles, err := filepath.Glob(filepath.Join(d, "*.service" ))
+		sfiles, err := filepath.Glob(filepath.Join(d, "*.service"))
 		if err != nil {
 			log.Printf("can't find service files in %d because %v. Skipping", d, err)
 			continue
 		}
 
 		log.Println("possible services", sfiles)
-		
+
 		for _, fn := range sfiles {
 			fd, err := os.Open(fn)
 			if err != nil {
 				log.Printf("can't open %s %v. Skipping: ", fn, err)
 				continue
 			}
-		
+
 			svcfile, err := ioutil.ReadAll(fd)
 			if err != nil {
-				log.Printf("can't read %s because %v. Skipping: ", fn, err)	
+				log.Printf("can't read %s because %v. Skipping: ", fn, err)
 				fd.Close()
 				continue
 			}
 			fd.Close()
-			
+
 			servicefiles = append(servicefiles, fileentry{
-				Path: filepath.Join("/etc/systemd/system", filepath.Base(fn)),
+				Path:        filepath.Join("/etc/systemd/system", filepath.Base(fn)),
 				Permissions: 0644,
-				Owner: "root",
-				Content: string(svcfile),
+				Owner:       "root",
+				Content:     string(svcfile),
 			})
-				
+
 		}
 	}
 
@@ -117,7 +114,7 @@ func mksvccmds(svcs []fileentry) []string {
 	cmds = append(cmds, "systemctl daemon-reload")
 
 	for _, svc := range svcs {
-		cmds = append(cmds, "systemctl start " +  filepath.Base(svc.Path))
+		cmds = append(cmds, "systemctl start "+filepath.Base(svc.Path))
 	}
 
 	return cmds
@@ -127,31 +124,30 @@ func mksvccmds(svcs []fileentry) []string {
 // a list of commands in yaml format.
 func loadpreamblecmds(fn string) []string {
 	if fn == "" {
-				return []string{}
+		return []string{}
 	}
-		
-			fd, err := os.Open(fn)
-			if err != nil {
-				log.Printf("can't open %s %v. Skipping: ", fn, err)
-				return []string{}
-			}
-		
-			pcmdsraw, err := ioutil.ReadAll(fd)
-			if err != nil {
-				log.Printf("can't read %s because %v. Skipping: ", fn, err)	
-				fd.Close()
-				return []string{}
-			}
-			fd.Close()
 
-		var cmds []string
-		if err := yaml.Unmarshal(pcmdsraw, &cmds); err != nil {
-			log.Printf("can't decode %s because %v. Skipping: ", fn, err)	
-			return []string{}
-		}
-return 	cmds		
+	fd, err := os.Open(fn)
+	if err != nil {
+		log.Printf("can't open %s %v. Skipping: ", fn, err)
+		return []string{}
+	}
+
+	pcmdsraw, err := ioutil.ReadAll(fd)
+	if err != nil {
+		log.Printf("can't read %s because %v. Skipping: ", fn, err)
+		fd.Close()
+		return []string{}
+	}
+	fd.Close()
+
+	var cmds []string
+	if err := yaml.Unmarshal(pcmdsraw, &cmds); err != nil {
+		log.Printf("can't decode %s because %v. Skipping: ", fn, err)
+		return []string{}
+	}
+	return cmds
 }
-
 
 var pcmdfn = flag.String("preamblecmds", "", "Cmds to be added as a preamble to the service starts")
 
@@ -164,12 +160,11 @@ Each argument directory should contain 1 or more service files with a
 .service suffix. Also each directory may contain a user.yaml file is
 present to specify users to create in the cloudconfig. `
 
-
 func init() {
-flag.Usage = func() {
-        fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n%s\n", os.Args[0], helpmessage)
-        flag.PrintDefaults()
-}
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage of %s:\n%s\n", os.Args[0], helpmessage)
+		flag.PrintDefaults()
+	}
 }
 
 func main() {
@@ -186,22 +181,20 @@ func main() {
 	// name for this service.
 
 	log.Println("dirs:", dirs)
-	
+
 	// If any errors occur, the cloudconfig file is probably not valid.
 
 	fes := readservicedefn(dirs)
 	config := cloudconfig{
-		Users: readuserdata(dirs),
+		Users:       readuserdata(dirs),
 		Write_files: fes,
-		Runcmd:    append(loadpreamblecmds(*pcmdfn), mksvccmds(fes)...),
-		
+		Runcmd:      append(loadpreamblecmds(*pcmdfn), mksvccmds(fes)...),
 	}
-	
-	
-        d, err := yaml.Marshal(config)
-        if err != nil {
-                log.Fatalf("error: %v", err)
-        }
-        fmt.Printf("--- m dump:\n%s\n\n", string(d))	
-	
+
+	d, err := yaml.Marshal(config)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	fmt.Printf("--- m dump:\n%s\n\n", string(d))
+
 }
