@@ -1,2 +1,6 @@
 cmd/gocloud/gocloud
 cmd/sessionender/sessionender
+cmd/transcribe/transcribe
+cmd/transcribe/transcribe-log
+cmd/makecloudconfig/makecloudconfig
+
