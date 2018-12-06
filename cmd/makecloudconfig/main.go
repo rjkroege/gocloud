@@ -39,21 +39,18 @@ func readuserdata(dirs []string) []user {
 	for _, d := range dirs {
 		fd, err := os.Open(filepath.Join(d, "user.yaml"))
 		if err != nil {
-			log.Printf("can't open %s/user.yaml because %v. Skipping: ", d, err)
-			continue
+			log.Fatalf("Giving up. Can't open %s/user.yaml because %v", d, err)
 		}
 
 		userraw, err := ioutil.ReadAll(fd)
 		if err != nil {
-			log.Printf("can't read %s/user.yaml because %v. Skipping: ", d, err)
-			fd.Close()
-			continue
+			log.Fatalf("Giving up. Can't read %s/user.yaml because %v ", d, err)
 		}
 		fd.Close()
 
 		var u user
 		if err := yaml.Unmarshal(userraw, &u); err != nil {
-			log.Printf("can't decode %s/user.yaml because %v. Skipping: ", d, err)
+			log.Fatalf("Giving up. Can't decode %s/user.yaml because %v", d, err)
 			continue
 		}
 
@@ -72,22 +69,18 @@ func readservicedefn(dirs []string) []fileentry {
 		// consider supporting more kinds of files? Multiple service files are possible
 		sfiles, err := filepath.Glob(filepath.Join(d, "*.service"))
 		if err != nil {
-			log.Printf("can't find service files in %d because %v. Skipping", d, err)
-			continue
+			log.Fatalf("Giving up. No service files in %d because %v", d, err)
 		}
 
 		for _, fn := range sfiles {
 			fd, err := os.Open(fn)
 			if err != nil {
-				log.Printf("can't open %s %v. Skipping: ", fn, err)
-				continue
+				log.Fatalf("Giving up. Can't open %s %v", fn, err)
 			}
 
 			svcfile, err := ioutil.ReadAll(fd)
 			if err != nil {
-				log.Printf("can't read %s because %v. Skipping: ", fn, err)
-				fd.Close()
-				continue
+				log.Fatalf("Giving up. Can't read %s because %v", fn, err)
 			}
 			fd.Close()
 
@@ -126,22 +119,18 @@ func loadpreamblecmds(fn string) []string {
 
 	fd, err := os.Open(fn)
 	if err != nil {
-		log.Printf("can't open %s %v. Skipping: ", fn, err)
-		return []string{}
+		log.Fatalf("Invalid preabmle %s: %v", fn, err)
 	}
 
 	pcmdsraw, err := ioutil.ReadAll(fd)
 	if err != nil {
-		log.Printf("can't read %s because %v. Skipping: ", fn, err)
-		fd.Close()
-		return []string{}
+		log.Fatalf("Invalid preabmle %s: %v", fn, err)
 	}
 	fd.Close()
 
 	var cmds []string
 	if err := yaml.Unmarshal(pcmdsraw, &cmds); err != nil {
-		log.Printf("can't decode %s because %v. Skipping: ", fn, err)
-		return []string{}
+		log.Fatalf("Invalid preabmle %s: %v", fn, err)
 	}
 	return cmds
 }
@@ -169,8 +158,7 @@ func main() {
 
 	dirs := flag.Args()
 	if len(dirs) < 1 {
-		log.Println("Can't proceed without at least one service directory")
-		return
+		log.Fatalf("Can't proceed without at least one service directory")
 	}
 
 	// Each directory is expected to contain a service definition (a file ending
@@ -189,6 +177,12 @@ func main() {
 	d, err := yaml.Marshal(config)
 	if err != nil {
 		log.Fatalf("can't make yaml from data error: %v", err)
+	}
+
+	// The presence of this string at the top is required for the cloudconfig
+	// tooling to correctly parse the file.
+	if _, err := os.Stdout.Write([]byte("#cloud-config\n")); err != nil {
+		log.Fatalf("can't emit final result error: %v", err)
 	}
 	if _, err := os.Stdout.Write(d); err != nil {
 		log.Fatalf("can't emit final result error: %v", err)
