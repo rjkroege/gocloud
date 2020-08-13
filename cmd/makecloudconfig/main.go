@@ -25,6 +25,7 @@ type fileentry struct {
 	Permissions int
 	Owner       string
 	Content     string
+	skip        bool
 }
 
 type cloudconfig struct {
@@ -37,6 +38,15 @@ type cloudconfig struct {
 func readuserdata(dirs []string) []user {
 	userslist := make([]user, 0, len(dirs))
 	for _, d := range dirs {
+		fi, err := os.Stat(d)
+		if err != nil {
+			log.Fatalf("Giving up. No file/dir %s because %v", d, err)
+		}
+
+		if !fi.IsDir() {
+			continue
+		}
+
 		fd, err := os.Open(filepath.Join(d, "user.yaml"))
 		if err != nil {
 			log.Fatalf("Giving up. Can't open %s/user.yaml because %v", d, err)
@@ -62,11 +72,48 @@ func readuserdata(dirs []string) []user {
 	return userslist
 }
 
+// processRegularFile handles supplementary file writes. The innards of
+// the file are broken out in this scheme so that I don't have to escape
+// things.
+func processRegularFile(rfn string) (fileentry, error) {
+	content, err := ioutil.ReadFile(rfn)
+	if err != nil {
+		return fileentry{}, fmt.Errorf("processRegularFile can't read %s: %v", rfn, err)
+	}
+
+	metadataname := rfn + ".meta"
+	mdf, err := ioutil.ReadFile(metadataname)
+	if err != nil {
+		return fileentry{}, fmt.Errorf("processRegularFile can't read %s: %v", metadataname, err)
+	}
+	var fi fileentry
+	if err := yaml.Unmarshal(mdf, &fi); err != nil {
+		return fileentry{}, fmt.Errorf("processRegularFile can't decode %s: %v", metadataname, err)
+	}
+
+	fi.Content = string(content)
+	fi.skip = true
+	return fi, nil
+}
+
 func readservicedefn(dirs []string) []fileentry {
 	servicefiles := make([]fileentry, 0, len(dirs))
 	for _, d := range dirs {
-		// TODO(rjk): I only support service files. Should I
-		// consider supporting more kinds of files? Multiple service files are possible
+		fi, err := os.Stat(d)
+		if err != nil {
+			log.Fatalf("Giving up. No file/dir %s because %v", d, err)
+		}
+
+		if !fi.IsDir() {
+			fe, err := processRegularFile(d)
+			if err != nil {
+				log.Fatalf("Giving up. Regular file %s failed because %v", d, err)
+			} else {
+				servicefiles = append(servicefiles, fe)
+			}
+			continue
+		}
+
 		sfiles, err := filepath.Glob(filepath.Join(d, "*.service"))
 		if err != nil {
 			log.Fatalf("Giving up. No service files in %d because %v", d, err)
@@ -104,7 +151,9 @@ func mksvccmds(svcs []fileentry) []string {
 	cmds = append(cmds, "systemctl daemon-reload")
 
 	for _, svc := range svcs {
-		cmds = append(cmds, "systemctl start "+filepath.Base(svc.Path))
+		if !svc.skip {
+			cmds = append(cmds, "systemctl start "+filepath.Base(svc.Path))
+		}
 	}
 
 	return cmds
