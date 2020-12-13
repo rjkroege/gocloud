@@ -116,7 +116,7 @@ func readservicedefn(dirs []string) []fileentry {
 
 		sfiles, err := filepath.Glob(filepath.Join(d, "*.service"))
 		if err != nil {
-			log.Fatalf("Giving up. No service files in %d because %v", d, err)
+			log.Fatalf("Giving up. No service files in %s because %v", d, err)
 		}
 
 		for _, fn := range sfiles {

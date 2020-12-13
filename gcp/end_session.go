@@ -62,7 +62,7 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 
 		zone, err = metadata.Zone()
 		if err != nil {
-			return fmt.Errorf("couldn't fetch the zone because", err)
+			return fmt.Errorf("couldn't fetch the zone because %v", err)
 
 			if len(argv) > argi {
 				zone = argv[argi]
@@ -74,7 +74,7 @@ func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
 
 		instance, err = metadata.InstanceName()
 		if err != nil {
-			return fmt.Errorf("couldn't fetch the instance because", err)
+			return fmt.Errorf("couldn't fetch the instance because %v", err)
 
 			if len(argv) > argi {
 				instance = argv[argi]
