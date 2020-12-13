@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"github.com/rjkroege/gocloud/cmd/makecloudconfig"
 )
 
 func main() {
-	fmt.Println("hello world")
+	// TODO(rjk): generalize this appropriately.
+	makecloudconfig.Cmd()
 }

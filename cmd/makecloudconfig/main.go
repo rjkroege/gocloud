@@ -1,4 +1,4 @@
-package main
+package makecloudconfig
 
 import (
 	"flag"
@@ -186,7 +186,7 @@ func loadpreamblecmds(fn string) []string {
 
 var pcmdfn = flag.String("preamblecmds", "", "Cmds to be added as a preamble to the service starts")
 
-const helpmessage = `makdcloudconfig assembles directories containing services together
+const helpmessage = `makecloudconfig assembles directories containing services together
 into a single cloudconfig user-data payload for the gcloud compute
 instances create's --metadata-from-file's option. Use the result of
 this command to set the value of the user-data key in the metadata.
@@ -202,7 +202,7 @@ func init() {
 	}
 }
 
-func main() {
+func Cmd() {
 	flag.Parse()
 
 	dirs := flag.Args()
