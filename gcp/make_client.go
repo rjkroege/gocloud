@@ -9,17 +9,17 @@ import (
 	"golang.org/x/oauth2/google"
 )
 
-func NewAuthenticatedClient(scopes []string ) (context.Context, *http.Client, error) {
+func NewAuthenticatedClient(scopes []string) (context.Context, *http.Client, error) {
 	ctx := context.Background()
-	
-/*
-	// TODO(rjk): Fix this.
-	if *debug {
-		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
-			Transport: gcp.NewTransport(http.DefaultTransport),
-		})
-	}
-*/
+
+	/*
+		// TODO(rjk): Fix this.
+		if *debug {
+			ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
+				Transport: gcp.NewTransport(http.DefaultTransport),
+			})
+		}
+	*/
 	client, err := google.DefaultClient(ctx, strings.Join(scopes, " "))
 	if err != nil {
 		return nil, nil, fmt.Errorf("can't make oauth client: %v", err)

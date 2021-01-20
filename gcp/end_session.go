@@ -22,7 +22,6 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-
 func EndSession(settings *config.Settings, instance string) error {
 	_, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
@@ -49,7 +48,7 @@ func EndSession(settings *config.Settings, instance string) error {
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the instance because %v", err)
 		}
-	} 
+	}
 
 	service, err := compute.New(client)
 	if err != nil {

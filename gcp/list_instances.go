@@ -2,12 +2,12 @@ package gcp
 
 import (
 	"fmt"
-//	"log"
-//	"net/http"
-//	"strings"
+	//	"log"
+	//	"net/http"
+	//	"strings"
 
-	compute "google.golang.org/api/compute/v1"
 	"github.com/rjkroege/gocloud/config"
+	compute "google.golang.org/api/compute/v1"
 )
 
 func List(settings *config.Settings) error {
@@ -37,5 +37,3 @@ func List(settings *config.Settings) error {
 	}
 	return nil
 }
-
-

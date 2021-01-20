@@ -7,18 +7,18 @@
 package main
 
 import (
-//	"context"
-//	"flag"
+	//	"context"
+	//	"flag"
 	"fmt"
 	"log"
-//	"net/http"
+	//	"net/http"
 	"os"
-//	"path/filepath"
+	//	"path/filepath"
 
 	"github.com/rjkroege/gocloud/gcp"
-//	"github.com/rjkroege/gocloud/harness"
-//	"golang.org/x/oauth2"
-//	"golang.org/x/oauth2/google"
+	//	"github.com/rjkroege/gocloud/harness"
+	//	"golang.org/x/oauth2"
+	//	"golang.org/x/oauth2/google"
 	"github.com/alecthomas/kong"
 	"github.com/rjkroege/gocloud/config"
 )
@@ -26,14 +26,12 @@ import (
 var CLI struct {
 	ConfigFile string `type:"path" help:"Set alternate configuration file" default:"~/.config/gocloud/gocloud.json"`
 
-  Rm struct {
-    Force     bool `help:"Force removal."`
-    Recursive bool `help:"Recursively remove files."`
+	Rm struct {
+		Force     bool `help:"Force removal."`
+		Recursive bool `help:"Recursively remove files."`
 
-    Paths []string `arg name:"path" help:"Paths to remove." type:"path"`
-  } `cmd help:"Remove files."`
-
-
+		Paths []string `arg name:"path" help:"Paths to remove." type:"path"`
+	} `cmd help:"Remove files."`
 
 	Make struct {
 	} `cmd help:"Make node."`
@@ -47,7 +45,7 @@ var CLI struct {
 }
 
 func main() {
-  ctx := kong.Parse(&CLI)
+	ctx := kong.Parse(&CLI)
 
 	settings, err := config.Read(CLI.ConfigFile)
 	if err != nil {
@@ -55,44 +53,43 @@ func main() {
 		os.Exit(-1)
 	}
 
-  switch ctx.Command() {
-  case "rm <path>":
-	log.Println("run rm <path>")
-  case "ls":
-	log.Println("run ls")
-	log.Println(CLI.ConfigFile, settings)
-	if err := gcp.List(settings); err != nil {
-		fmt.Println("can't list nodes:", err)
-		os.Exit(-1)
-	}
-  case "make":
-	log.Println("run make")
-  case "del <node>":
-	log.Println("run del" )
-	log.Println(CLI.Del.Node)
-	if err := gcp.EndSession(settings, CLI.Del.Node); err != nil {
-		fmt.Println("can't list nodes:", err)
-		os.Exit(-1)
-	}
-  default:
-    panic(ctx.Command())
-  }
-
-
-/*
-	ctx := context.Background()
-	if *debug {
-		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
-			Transport: gcp.NewTransport(http.DefaultTransport),
-		})
-	}
-	client, err := google.DefaultClient(ctx, cmd.Scope())
-	if err != nil {
-		log.Fatalln("Can't setup an OAuth connection because", err)
+	switch ctx.Command() {
+	case "rm <path>":
+		log.Println("run rm <path>")
+	case "ls":
+		log.Println("run ls")
+		log.Println(CLI.ConfigFile, settings)
+		if err := gcp.List(settings); err != nil {
+			fmt.Println("can't list nodes:", err)
+			os.Exit(-1)
+		}
+	case "make":
+		log.Println("run make")
+	case "del <node>":
+		log.Println("run del")
+		log.Println(CLI.Del.Node)
+		if err := gcp.EndSession(settings, CLI.Del.Node); err != nil {
+			fmt.Println("can't list nodes:", err)
+			os.Exit(-1)
+		}
+	default:
+		panic(ctx.Command())
 	}
 
-	if err := cmd.Execute(client, args); err != nil {
-		log.Println("failed to execute", cmd.Name(), "because", err)
-	}
-*/
+	/*
+		ctx := context.Background()
+		if *debug {
+			ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
+				Transport: gcp.NewTransport(http.DefaultTransport),
+			})
+		}
+		client, err := google.DefaultClient(ctx, cmd.Scope())
+		if err != nil {
+			log.Fatalln("Can't setup an OAuth connection because", err)
+		}
+
+		if err := cmd.Execute(client, args); err != nil {
+			log.Println("failed to execute", cmd.Name(), "because", err)
+		}
+	*/
 }
