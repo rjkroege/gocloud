@@ -7,51 +7,79 @@
 package main
 
 import (
-	"context"
-	"flag"
+//	"context"
+//	"flag"
 	"fmt"
 	"log"
-	"net/http"
+//	"net/http"
 	"os"
-	"path/filepath"
+//	"path/filepath"
 
 	"github.com/rjkroege/gocloud/gcp"
-	"github.com/rjkroege/gocloud/harness"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
+//	"github.com/rjkroege/gocloud/harness"
+//	"golang.org/x/oauth2"
+//	"golang.org/x/oauth2/google"
+	"github.com/alecthomas/kong"
+	"github.com/rjkroege/gocloud/config"
 )
 
-// Flags
-var (
-	debug = flag.Bool("debug", false, "show HTTP traffic")
-)
+var CLI struct {
+	ConfigFile string `type:"path" help:"Set alternate configuration file" default:"~/.config/gocloud/gocloud.json"`
 
-// TODO(rjk): Update the usage message.
-func usage() {
-	fmt.Fprintf(os.Stderr, "Usage: gocloud <subcommand> [api name args]\n\nPossible APIs:\n\n")
-	harness.Usage(os.Stderr)
-	os.Exit(2)
+  Rm struct {
+    Force     bool `help:"Force removal."`
+    Recursive bool `help:"Recursively remove files."`
+
+    Paths []string `arg name:"path" help:"Paths to remove." type:"path"`
+  } `cmd help:"Remove files."`
+
+
+
+	Make struct {
+	} `cmd help:"Make node."`
+
+	Del struct {
+		Node string `arg name:"node" help:"Node to remove."`
+	} `cmd help:"Delete node."`
+
+	Ls struct {
+	} `cmd help:"List running nodes."`
 }
 
 func main() {
-	flag.Parse()
-	if flag.NArg() == 0 {
-		usage()
+  ctx := kong.Parse(&CLI)
+
+	settings, err := config.Read(CLI.ConfigFile)
+	if err != nil {
+		fmt.Println("Fatai:", err)
+		os.Exit(-1)
 	}
 
-	name := filepath.Base(os.Args[0])
-	cmd, ok := harness.Cmd(name)
-	args := flag.Args()
-	if !ok {
-		// Or the name might be the first argument.
-		name = flag.Arg(0)
-		cmd, ok = harness.Cmd(name)
-		args = flag.Args()[1:]
-		if !ok {
-			usage()
-		}
+  switch ctx.Command() {
+  case "rm <path>":
+	log.Println("run rm <path>")
+  case "ls":
+	log.Println("run ls")
+	log.Println(CLI.ConfigFile, settings)
+	if err := gcp.List(settings); err != nil {
+		fmt.Println("can't list nodes:", err)
+		os.Exit(-1)
 	}
+  case "make":
+	log.Println("run make")
+  case "del <node>":
+	log.Println("run del" )
+	log.Println(CLI.Del.Node)
+	if err := gcp.EndSession(settings, CLI.Del.Node); err != nil {
+		fmt.Println("can't list nodes:", err)
+		os.Exit(-1)
+	}
+  default:
+    panic(ctx.Command())
+  }
 
+
+/*
 	ctx := context.Background()
 	if *debug {
 		ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
@@ -66,4 +94,5 @@ func main() {
 	if err := cmd.Execute(client, args); err != nil {
 		log.Println("failed to execute", cmd.Name(), "because", err)
 	}
+*/
 }

@@ -16,82 +16,40 @@ package gcp
 
 import (
 	"fmt"
-	"net/http"
-	"strings"
 
 	"cloud.google.com/go/compute/metadata"
-	"github.com/rjkroege/gocloud/harness"
+	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
 )
 
-type endSessionCmd struct {
-	listInstanceCmd
-}
 
-func init() {
-	// Associates endsessionMain with the main.
-	harness.AddSubCommand(MakeEndSession())
-}
-
-func MakeEndSession() harness.Command {
-	scopes := strings.Join([]string{
+func EndSession(settings *config.Settings, instance string) error {
+	_, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
-	}, " ")
+	})
+	if err != nil {
+		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
+	}
 
-	return &endSessionCmd{listInstanceCmd{"endsession", scopes, "endsession [projectId zone instance]"}}
-}
-
-func (c *endSessionCmd) Execute(client *http.Client, argv []string) error {
-	var projectid, zone, instance string
+	projectid := settings.ProjectId
+	zone := settings.Zone
 
 	if metadata.OnGCE() {
-		argi := 0
-		var err error
-
 		projectid, err = metadata.ProjectID()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the projectid because %v", err)
-
-			if len(argv) > argi {
-				projectid = argv[argi]
-				argi++
-			} else {
-				return fmt.Errorf("no projectid from argument or metadata")
-			}
 		}
 
 		zone, err = metadata.Zone()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the zone because %v", err)
-
-			if len(argv) > argi {
-				zone = argv[argi]
-				argi++
-			} else {
-				return fmt.Errorf("no zone from argument or metadata")
-			}
 		}
 
 		instance, err = metadata.InstanceName()
 		if err != nil {
 			return fmt.Errorf("couldn't fetch the instance because %v", err)
-
-			if len(argv) > argi {
-				instance = argv[argi]
-				argi++
-			} else {
-				return fmt.Errorf("no instance from argument or metadata")
-			}
 		}
-	} else {
-		if len(argv) != 3 {
-			return fmt.Errorf("Invalid argument list. Usage %s", c.Usage())
-		}
-
-		projectid = argv[0]
-		zone = argv[1]
-		instance = argv[2]
-	}
+	} 
 
 	service, err := compute.New(client)
 	if err != nil {

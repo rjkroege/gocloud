@@ -51,14 +51,8 @@ func main() {
 				continue
 			}
 
-			cmd := gcp.MakeEndSession()
-			ctx := context.Background()
-			client, err := google.DefaultClient(ctx, cmd.Scope())
-			if err != nil {
-				log.Println("Can't setup an OAuth connection because", err)
-			}
-			if err := cmd.Execute(client, []string{}); err != nil {
-				log.Println("failed to execute", cmd.Name(), "because", err)
+			if err := gcp.EndSession(&config.Settings{}, ""); err != nil {
+				log.Println("failed to EndSession:", err)
 			}
 		}
 
