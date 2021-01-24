@@ -17,7 +17,9 @@ func EndSession(settings *config.Settings, instance string) error {
 	}
 
 	projectid := settings.ProjectId
-	zone := settings.Zone
+	// TODO(rjk): Doesn't handle being outside of the default zone.
+	// TODO(rjk): zone handling needs to be addressed better.
+	zone := settings.DefaultZone
 
 	if metadata.OnGCE() {
 		projectid, err = metadata.ProjectID()

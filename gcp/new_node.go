@@ -13,7 +13,7 @@ import (
 // based on https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
 
 
-func MakeNode(settings *config.Settings) error {
+func MakeNode(settings *config.Settings, configName, instanceName string) error {
 	ctx, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
 	})
@@ -21,13 +21,11 @@ func MakeNode(settings *config.Settings) error {
 		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
 	}
 
-	// TODO(rjk): Pass in the context.
-	// TODO(rjk): the family name needs to come from settings.
-	latestimage, err := findNewestStableCosImage(ctx, client)
+	familyName :=  settings.InstanceTypes[configName].Family
+	latestimage, err := findNewestStableImage(ctx, client, familyName)
 	if err != nil {
 		fmt.Println("can't find desired stable image", err)
 	}
-
 
 	// TODO(rjk): reuse the service.
 	service, err := compute.New(client)
@@ -36,20 +34,16 @@ func MakeNode(settings *config.Settings) error {
 	}
 
 	projectID := settings.ProjectId
-	zone := settings.Zone
+	zone := settings.Zone(configName)
 	prefix := "https://www.googleapis.com/compute/v1/projects/" + projectID
-	imageURL := "https://www.googleapis.com/compute/v1/projects/cos-cloud/global/images/" + latestimage.Name
+	imageURL := "https://www.googleapis.com/compute/v1/projects/" + familyName + "/global/images/" + latestimage.Name
 
-	// TODO(rjk): the machine name needs to come from an argument / settings
-	instanceName := "ween"
-
-	// TODO(rjk): the machine type needs to come from the settings file.
-	machinetype := "e2-small"
+	machinetype := settings.InstanceTypes[configName].Hardware
 	// TODO(rjk): the disk configuration needs to come from the settings.
 
 	instance := &compute.Instance{
 		Name:        instanceName,
-		Description: "ween instance",
+		Description: settings.Description(configName, instanceName),
 		MachineType: prefix + "/zones/" + zone + "/machineTypes/" + machinetype,
 
 		Disks: []*compute.AttachedDisk{

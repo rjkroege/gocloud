@@ -6,9 +6,18 @@ import (
 	"os"
 )
 
+
+type InstanceConfig struct {
+	Family string `json:"family"`
+	Hardware string `json:"hardware"`
+	Zone      string `json:"zone,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
 type Settings struct {
+	DefaultZone string `json:"defaultzone"`
 	ProjectId string `json:"projectid"`
-	Zone      string `json:"zone"`
+	InstanceTypes map[string]InstanceConfig  `json:"instancetypes"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -22,5 +31,36 @@ func Read(path string) (*Settings, error) {
 	if err := decoder.Decode(settings); err != nil {
 		return nil, fmt.Errorf("error parsing config %q: %v", path, err)
 	}
+
+	// TODO(rjk): Validate.
 	return settings, nil
+}
+
+// Zone returns the zone for this instancetype.
+func (s *Settings) Zone(instancetype string) string {
+	if z, ok := s.InstanceTypes[instancetype]; ok && z.Zone != "" {
+		return z.Zone
+	}
+	return s.DefaultZone
+}
+
+// UniqueFamilies returns the unique families used in settings.
+func (s *Settings) UniqueFamilies() []string {
+	fm := make(map[string]struct{})
+	for _, v := range s.InstanceTypes {
+		fm[v.Family] = struct{}{}
+	}
+	fa := make([]string, 0)
+	for k, _ := range fm {
+		fa = append(fa, k)
+	}
+	return fa
+}
+
+func (s *Settings) Description(instancetype, name string) string {
+	ins := s.InstanceTypes[instancetype]
+	if ins.Description != "" {
+		return ins.Description
+	}
+	return fmt.Sprintf("%s: %s %s %s instance", name, instancetype, ins.Family, ins.Hardware)
 }

@@ -14,7 +14,9 @@ var CLI struct {
 	ConfigFile string `type:"path" help:"Set alternate configuration file" default:"~/.config/gocloud/gocloud.json"`
 
 	Make struct {
-	} `cmd help:"Make node."`
+		Config string `arg name:"config" help:"Defined configuration for instance"`
+		Name string `arg name:"name" help:"Name of instance"`
+	} `cmd help:"Make instance."`
 
 	Del struct {
 		Node string `arg name:"node" help:"Node to remove."`
@@ -46,14 +48,20 @@ func main() {
 		}
 	case "ls-images":
 		log.Println("run lsimages")
-		log.Println(CLI.ConfigFile, settings)
+		log.Println("dumping configuration", CLI.ConfigFile, settings)
 		if err := gcp.ListImages(settings); err != nil {
 			fmt.Println("can't list images:", err)
 			os.Exit(-1)
 		}
-	case "make":
+	case "make <config> <name>":
 		log.Println("run make")
-		if err := gcp.MakeNode(settings); err != nil {
+		// TODO(rjk): There's probably some fancy Kong way to do this that's better.
+		if _, ok := settings.InstanceTypes[CLI.Make.Config]; !ok {
+			fmt.Printf("undefined instance type %q\n", CLI.Make.Config)
+			os.Exit(-1)
+		}
+
+		if err := gcp.MakeNode(settings, CLI.Make.Config, CLI.Make.Name); err != nil {
 			fmt.Println("can't make node:", err)
 			os.Exit(-1)
 		}

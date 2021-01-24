@@ -21,7 +21,8 @@ func List(settings *config.Settings) error {
 	}
 
 	projectId := settings.ProjectId
-	zone := settings.Zone
+	// TODO(rjk): Support multiple zones correctly.
+	zone := settings.DefaultZone
 
 	// List the current instances.
 	res, err := service.Instances.List(projectId, zone).Do()
