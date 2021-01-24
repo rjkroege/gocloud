@@ -2,9 +2,6 @@ package gcp
 
 import (
 	"fmt"
-	//	"log"
-	//	"net/http"
-	//	"strings"
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
