@@ -31,7 +31,6 @@ func ListImages(settings *config.Settings) error {
 		fmt.Println(im.Name, im.Family)
 	}
 
-
 	neweststable, err := findNewestStableCosImage(ctx, client)
 	if err != nil {
 		fmt.Println("can't find stable image", err)

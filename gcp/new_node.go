@@ -93,7 +93,7 @@ func MakeNode(settings *config.Settings) error {
 	// Aside: wouldn't trying to make a node more than once fail?
 
 	// TODO(rjk): shouldn't I check the status here.
-	op, err := service.Instances.Insert(projectID, zone, instance).Do()
+	op, err := service.Instances.Insert(projectID, zone, instance).Context(ctx).Do()
 	if err != nil {
 		return fmt.Errorf("instance insertion failed: %v", err)
 	}
@@ -106,7 +106,7 @@ func MakeNode(settings *config.Settings) error {
 	etag := op.Header.Get("Etag")
 	log.Printf("Etag=%v", etag)
 
-	inst, err := service.Instances.Get(projectID, zone, instanceName).IfNoneMatch(etag).Do()
+	inst, err := service.Instances.Get(projectID, zone, instanceName).Context(ctx).IfNoneMatch(etag).Do()
 	if err != nil {
 		return fmt.Errorf("instance Get failed: %v", err)
 	}
