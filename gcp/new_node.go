@@ -14,7 +14,7 @@ import (
 
 
 func MakeNode(settings *config.Settings) error {
-	_, client, err := NewAuthenticatedClient([]string{
+	ctx, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
 	})
 	if err != nil {
@@ -23,7 +23,7 @@ func MakeNode(settings *config.Settings) error {
 
 	// TODO(rjk): Pass in the context.
 	// TODO(rjk): the family name needs to come from settings.
-	latestimage, err := findNewestStableCosImage(client)
+	latestimage, err := findNewestStableCosImage(ctx, client)
 	if err != nil {
 		fmt.Println("can't find desired stable image", err)
 	}

@@ -1,6 +1,7 @@
 package gcp
 
 import (
+	"context"
 	"net/http"
 	"fmt"
 	"strings"
@@ -8,21 +9,19 @@ import (
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
-
-	"log"
 )
 
 // TODO(rjk): Rationalize project name arguments.
 func ListImages(settings *config.Settings) error {
 	// is there a way to determine the family 
-	_, client, err := NewAuthenticatedClient([]string{
+	ctx, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
 	})
 	if err != nil {
 		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
 	}
 
-	notdeprecated, err := listProjectImages("cos-cloud", client)
+	notdeprecated, err := listProjectImages(ctx, client,"cos-cloud")
 	if err != nil {
 		return fmt.Errorf("listProjectImages: %v", err)
 	}
@@ -33,7 +32,7 @@ func ListImages(settings *config.Settings) error {
 	}
 
 
-	neweststable, err := findNewestStableCosImage(client)
+	neweststable, err := findNewestStableCosImage(ctx, client)
 	if err != nil {
 		fmt.Println("can't find stable image", err)
 	}
@@ -86,8 +85,8 @@ func newest(v1, v2 VersionTuple) VersionTuple {
 	return v1
 }
 
-func findNewestStableCosImage(client *http.Client) (*compute.Image, error) {
-	notdeprecated, err := listProjectImages("cos-cloud", client)
+func findNewestStableCosImage(ctx context.Context, client *http.Client) (*compute.Image, error) {
+	notdeprecated, err := listProjectImages(ctx, client, "cos-cloud")
 	if err != nil {
 		return nil, fmt.Errorf("listProjectImages: %v", err)
 	}
@@ -105,18 +104,16 @@ func findNewestStableCosImage(client *http.Client) (*compute.Image, error) {
 	return nil, fmt.Errorf("no stable cos-cloud image")	
 }
 
-func listProjectImages(project string, client *http.Client) ([]*compute.Image, error) {
+func listProjectImages(ctx context.Context, client *http.Client, project string) ([]*compute.Image, error) {
 	service, err := compute.New(client)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create Compute service: %v", err)
 	}
 
 	// Show the current images that are available.
-	listcommand := service.Images.List(project)
+	listcommand := service.Images.List(project).Context(ctx)
 
-	// TODO(rjk): Add the ctx to the command.
 	// TODO(rjk): Use a filter operation?
-
 	notdeprecated := make([]*compute.Image, 0)
 	for {
 		// TODO(rjk): should be able to use filters...
@@ -132,11 +129,9 @@ func listProjectImages(project string, client *http.Client) ([]*compute.Image, e
 		}
 
 		if res.NextPageToken == "" {
-			log.Println("but wait... there's more")
 			break
 		}
-
-		listcommand.PageToken(res.NextPageToken)
+		listcommand = listcommand.PageToken(res.NextPageToken)
 	}
 	return notdeprecated, nil
 }
