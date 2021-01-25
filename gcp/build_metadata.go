@@ -25,9 +25,14 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 	})
 
 	// gitcredential (read from the keychain)
-// TODO(rjk): mine the git credentials...
-// I need a setter tool probably?
-	
+	cred, err := settings.GitCredential()
+	if err != nil {
+		return nil, fmt.Errorf("no git credential: %v", err)
+	}
+	metas = append(metas, &compute.MetadataItems{
+		Key: "gitcredential",
+		Value: &cred,
+	})
 
 	// ssh key
 	sshpath := settings.PublicKeyFile(userinfo.HomeDir)

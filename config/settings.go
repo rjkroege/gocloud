@@ -21,6 +21,7 @@ type Settings struct {
 	ProjectId string `json:"projectid"`
 	InstanceTypes map[string]InstanceConfig  `json:"instancetypes"`
 	SshPublicKeyFile string `json:"sshpublickey,omitempty"`
+	Credential string `json:"credential,omitempty"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -78,4 +79,15 @@ func (s *Settings) PublicKeyFile(home string) string {
 		}
 	}
 	return filepath.Join(home, ".ssh",  "id_rsa.pub")
+}
+
+func (s *Settings) GitCredential() (string, error) {
+	cred, err := getCredential()
+	if err != nil {
+		return "", err
+	}
+	if cred  != "" {
+		return cred, nil
+	}
+	return s.Credential, nil
 }
