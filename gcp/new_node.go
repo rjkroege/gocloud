@@ -41,6 +41,11 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	machinetype := settings.InstanceTypes[configName].Hardware
 	// TODO(rjk): the disk configuration needs to come from the settings.
 
+	metadata, err := makeMetadataObject(settings, configName)
+	if err != nil {
+		return fmt.Errorf("can't make metadata: %v", err)
+	}
+
 	instance := &compute.Instance{
 		Name:        instanceName,
 		Description: settings.Description(configName, instanceName),
@@ -58,7 +63,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 				},
 			},
 		},
-//		Metadata: metadata,
+		Metadata: metadata,
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
 				AccessConfigs: []*compute.AccessConfig{
@@ -76,6 +81,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 				Email: "default",
 				Scopes: []string{
 					// TODO(rjk): I have no idea if this will do what I want.
+					// 
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
 				},
@@ -111,7 +117,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 		log.Printf("Instance modified since insert.")
 	}
 
-// TODO(rjk): Need to update the .ssh/config to let me ssh to the node.
+// TODO(rjk): Need to update the .ssh/config to let me ssh to the node. (Need an entry for ween)
 // TODO(rjk): Need a flag to turn that off probably.
 	fmt.Printf("hostname is either %s.c.%s.internal or %s.%s.c.%s.internal\n", instanceName, projectID, instanceName, zone, projectID)
 

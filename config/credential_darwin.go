@@ -25,7 +25,7 @@ func readKeyChain(service, username, accessgroup string) ([]byte, bool, error) {
 	query.SetAccount(username)
 
 	// This is suppose to be the team id (from signing / notarization) with
-	// .org.liqui.mkconfig appended. I have made it up.
+	// .org.liqui.mkconfig appended. I have made it up. It doesn't seem to matter.
 	query.SetAccessGroup(accessgroup)
 
 	// We only want one result
