@@ -27,6 +27,10 @@ var CLI struct {
 
 	LsImages struct {
 	} `cmd help:"List available images."`
+
+	ShowMeta struct {
+		Config string `arg name:"config" help:"Defined configuration for instance"`
+	} `cmd help:"Show metadata for configuration"`
 }
 
 func main() {
@@ -69,7 +73,17 @@ func main() {
 		log.Println("run del")
 		log.Println(CLI.Del.Node)
 		if err := gcp.EndSession(settings, CLI.Del.Node); err != nil {
-			fmt.Println("can't list nodes:", err)
+			fmt.Printf("can't remove instance %s: %v", CLI.Del.Node, err)
+			os.Exit(-1)
+		}
+	case "show-meta <config>":
+		log.Println("run ShowMetadata")
+		if _, ok := settings.InstanceTypes[CLI.ShowMeta.Config]; !ok {
+			fmt.Printf("undefined instance type %q\n", CLI.ShowMeta.Config)
+			os.Exit(-1)
+		}
+		if err := gcp.ShowMetadata(settings, CLI.ShowMeta.Config); err != nil {
+			fmt.Printf("can't show metadata for config %s: %v\n", CLI.ShowMeta.Config, err)
 			os.Exit(-1)
 		}
 	default:

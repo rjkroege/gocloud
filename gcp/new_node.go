@@ -118,14 +118,3 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	return nil
 }
 
-// TODO(rjk): Generate metadata in a rational way.
-func makeMetadataObject() (*compute.Metadata, error) {
-	// gitcredential (read from the keychain)
-	// username
-	// user-data (from ween)
-	// How to handle use-data? Compile in? Read from an external file? The config
-	// builder constructs it right? Maybe read from a file.
-	// ssh-key 
-
-	return nil, nil
-}

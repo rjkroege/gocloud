@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"path/filepath"
 	"fmt"
 	"os"
 )
@@ -12,12 +13,14 @@ type InstanceConfig struct {
 	Hardware string `json:"hardware"`
 	Zone      string `json:"zone,omitempty"`
 	Description string `json:"description,omitempty"`
+	UserDataFile string `json:"userdatafile,omitempty"`
 }
 
 type Settings struct {
 	DefaultZone string `json:"defaultzone"`
 	ProjectId string `json:"projectid"`
 	InstanceTypes map[string]InstanceConfig  `json:"instancetypes"`
+	SshPublicKeyFile string `json:"sshpublickey,omitempty"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -63,4 +66,16 @@ func (s *Settings) Description(instancetype, name string) string {
 		return ins.Description
 	}
 	return fmt.Sprintf("%s: %s %s %s instance", name, instancetype, ins.Family, ins.Hardware)
+}
+
+func (s *Settings) PublicKeyFile(home string) string {
+	if s.SshPublicKeyFile != "" {
+		
+		if filepath.IsAbs(s.SshPublicKeyFile) {
+			return s.SshPublicKeyFile
+		} else {
+			return filepath.Join(home, ".ssh", s.SshPublicKeyFile)
+		}
+	}
+	return filepath.Join(home, ".ssh",  "id_rsa.pub")
 }

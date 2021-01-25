@@ -8,6 +8,7 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
+// TODO(rjk): Consider making this block until the instance is actually gone.
 func EndSession(settings *config.Settings, instance string) error {
 	_, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
