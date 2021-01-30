@@ -5,13 +5,12 @@ import (
 	"log"
 
 	"github.com/rjkroege/gocloud/config"
-	compute "google.golang.org/api/compute/v1"
 	"github.com/sanity-io/litter"
+	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
 )
 
 // based on https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
-
 
 func MakeNode(settings *config.Settings, configName, instanceName string) error {
 	ctx, client, err := NewAuthenticatedClient([]string{
@@ -21,7 +20,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
 	}
 
-	familyName :=  settings.InstanceTypes[configName].Family
+	familyName := settings.InstanceTypes[configName].Family
 	latestimage, err := findNewestStableImage(ctx, client, familyName)
 	if err != nil {
 		fmt.Println("can't find desired stable image", err)
@@ -81,7 +80,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 				Email: "default",
 				Scopes: []string{
 					// TODO(rjk): I have no idea if this will do what I want.
-					// 
+					//
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
 				},
@@ -102,7 +101,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	litter.Dump(op)
 
 	// TODO(rjk): Why did the original example do this? Wouldn't the "right" thing be to
-	// retry the Insert a few times?
+	// retry the Insert a few times with a uuid token to make sure that it's happened?
 	etag := op.Header.Get("Etag")
 	log.Printf("Etag=%v", etag)
 
@@ -117,10 +116,24 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 		log.Printf("Instance modified since insert.")
 	}
 
-// TODO(rjk): Need to update the .ssh/config to let me ssh to the node. (Need an entry for ween)
-// TODO(rjk): Need a flag to turn that off probably.
-	fmt.Printf("hostname is either %s.c.%s.internal or %s.%s.c.%s.internal\n", instanceName, projectID, instanceName, zone, projectID)
-
-	return nil
+	// TODO(rjk): This isn't generating the right ip address.
+	ip, err := getExternalIP(inst)
+	if err != nil {
+		return fmt.Errorf("not updating .ssh/config because no ip for %s\n", inst.Name)
+	}
+	return config.AddSshAlias(inst.Name, ip)
 }
 
+// getExternalIP digs through inst looking for its external (i.e. via NAT) IP
+func getExternalIP(inst *compute.Instance) (string, error) {
+	// I don't know how much variety that there would be in the structure of the info
+	// I want one external IP. Not necessarily all of them.
+	for _, ni := range inst.NetworkInterfaces {
+		for _, ac := range ni.AccessConfigs {
+			if ip := ac.NatIP; ip != "" {
+				return ip, nil
+			}
+		}
+	}
+	return "", fmt.Errorf("%s doesn't have external ip", inst.Name)
+}

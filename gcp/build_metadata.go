@@ -1,18 +1,18 @@
 package gcp
 
-import (	
+import (
+	"fmt"
 	"io/ioutil"
 	"os/user"
-	"fmt"
 
-	compute "google.golang.org/api/compute/v1"
-	"github.com/sanity-io/litter"
 	"github.com/rjkroege/gocloud/config"
+	"github.com/sanity-io/litter"
+	compute "google.golang.org/api/compute/v1"
 )
 
-func makeMetadataObject(settings *config.Settings, configName string ) (*compute.Metadata, error) {
+func makeMetadataObject(settings *config.Settings, configName string) (*compute.Metadata, error) {
 	metas := make([]*compute.MetadataItems, 0)
-	
+
 	// username
 	userinfo, err := user.Current()
 	if err != nil {
@@ -20,7 +20,7 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 	}
 	suname := string(userinfo.Username)
 	metas = append(metas, &compute.MetadataItems{
-		Key: "username",
+		Key:   "username",
 		Value: &suname,
 	})
 
@@ -30,7 +30,7 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 		return nil, fmt.Errorf("no git credential: %v", err)
 	}
 	metas = append(metas, &compute.MetadataItems{
-		Key: "gitcredential",
+		Key:   "gitcredential",
 		Value: &cred,
 	})
 
@@ -42,7 +42,7 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 	}
 	ssshkey := string(sshkey)
 	metas = append(metas, &compute.MetadataItems{
-		Key: "sshkey",
+		Key:   "sshkey",
 		Value: &ssshkey,
 	})
 
@@ -58,7 +58,7 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 	}
 	suserdata := string(userdata)
 	metas = append(metas, &compute.MetadataItems{
-		Key: "user-data",
+		Key:   "user-data",
 		Value: &suserdata,
 	})
 
@@ -67,7 +67,7 @@ func makeMetadataObject(settings *config.Settings, configName string ) (*compute
 	}, nil
 }
 
-func ShowMetadata(settings *config.Settings,configName string) error {
+func ShowMetadata(settings *config.Settings, configName string) error {
 	metadata, err := makeMetadataObject(settings, configName)
 	if err != nil {
 		return err
@@ -76,4 +76,3 @@ func ShowMetadata(settings *config.Settings,configName string) error {
 	litter.Dump(metadata)
 	return nil
 }
-

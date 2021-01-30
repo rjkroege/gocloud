@@ -2,6 +2,8 @@ package gcp
 
 import (
 	"fmt"
+	"net/url"
+	"path"
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
@@ -31,7 +33,19 @@ func List(settings *config.Settings) error {
 	}
 
 	for _, inst := range res.Items {
-		fmt.Println(inst.Name, inst.MachineType)
+		machurl, err := url.Parse(inst.MachineType)
+		if err != nil {
+			fmt.Printf("%s has unparsable machine type %s\n", inst.Name, inst.MachineType)
+			continue
+		}
+
+		ip, err := getExternalIP(inst)
+		if err != nil {
+			fmt.Printf("can't determine ip for %s\n", inst.Name)
+			continue
+		}
+
+		fmt.Println(inst.Name, path.Base(machurl.Path), ip)
 	}
 	return nil
 }

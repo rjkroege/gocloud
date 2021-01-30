@@ -9,9 +9,8 @@ import (
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
-
-//	"log"
-//	"github.com/sanity-io/litter"
+	//	"log"
+	//	"github.com/sanity-io/litter"
 )
 
 // ListImages lists available and default selected images for each image family
