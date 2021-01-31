@@ -7,7 +7,6 @@ import (
 	"os"
 )
 
-
 type InstanceConfig struct {
 	Family string `json:"family"`
 	Hardware string `json:"hardware"`
