@@ -53,9 +53,7 @@ func  getCredential() ( string, error) {
 	if err != nil {
 			return "", fmt.Errorf("can't read credential from keychain: %v", err)
 	} else if  !exists {
-			// Do I need to write an app to store the keychain?
-			// TODO(rjk):
-			return "", fmt.Errorf("no keychain. Try adding a keychain login application password for gocloud.liqui.org: %v", err)
+			return "", fmt.Errorf("no keychain. Try adding a keychain login (i.e. \"New Password Item...\") application password for your account (username) and name gocloud.liqui.org with git credential as password")
 	}
 
 	return string(data), nil

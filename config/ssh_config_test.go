@@ -16,6 +16,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 
@@ -27,6 +28,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud secondinstance --
@@ -36,6 +38,7 @@ Host secondinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 
@@ -47,6 +50,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud secondinstance --
@@ -56,6 +60,7 @@ Host secondinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud suffixinstance --
@@ -65,6 +70,7 @@ Host suffixinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 
@@ -76,6 +82,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud secondinstance --
@@ -85,6 +92,7 @@ Host secondinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud suffixinstance --
@@ -94,6 +102,7 @@ Host suffixinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 
@@ -105,6 +114,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud secondinstance --
@@ -114,6 +124,7 @@ Host secondinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud suffixinstance --
@@ -123,6 +134,7 @@ Host suffixinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 
@@ -134,6 +146,7 @@ Host instancename
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud secondinstance --
@@ -143,6 +156,7 @@ Host secondinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 
 #-- gocloud suffixinstance --
@@ -152,6 +166,7 @@ Host suffixinstance
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 #---
 `
 

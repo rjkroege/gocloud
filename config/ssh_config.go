@@ -29,6 +29,7 @@ Host {{.Name}}
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
+	StrictHostKeyChecking no
 {{.Footer}}
 `
 
