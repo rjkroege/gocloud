@@ -97,6 +97,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 					//
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
+					compute.CloudPlatformScope,
 				},
 			},
 		},
