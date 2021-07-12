@@ -3,12 +3,20 @@ package gcp
 import (
 	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
 	"google.golang.org/api/googleapi"
 )
+
+func parseDiskSize(szs string) (int64, error) {
+	if szs == "" {
+		return 0, nil
+	}
+	return strconv.ParseInt(szs, 10, 64)
+}
 
 // based on https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
 
@@ -38,7 +46,12 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	imageURL := "https://www.googleapis.com/compute/v1/projects/" + familyName + "/global/images/" + latestimage.Name
 
 	machinetype := settings.InstanceTypes[configName].Hardware
-	// TODO(rjk): the disk configuration needs to come from the settings.
+
+	disksize, err := parseDiskSize(settings.InstanceTypes[configName].DiskSize)
+	if err != nil {
+		return fmt.Errorf("unable to create Compute service, bad disk size: %q %v", settings.InstanceTypes[configName].DiskSize, err)
+	}
+	// TODO(rjk): add disk type (e.g. flash, persistent, etc.)
 
 	metadata, err := makeMetadataObject(settings, configName)
 	if err != nil {
@@ -58,6 +71,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					// TODO(rjk): compute something better
 					DiskName:    "ween-root",
+					DiskSizeGb:  disksize,
 					SourceImage: imageURL,
 				},
 			},
@@ -99,11 +113,11 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	etag := op.Header.Get("Etag")
 	log.Printf("Etag=%#v", etag)
 
-	for i := 0; i < 12 ; i++ {
+	for i := 0; i < 12; i++ {
 		// Wait a bit for the GCP to have done something.
-		delayms := time.Duration(64 * (1 << i)) * time.Millisecond
+		delayms := time.Duration(64*(1<<i)) * time.Millisecond
 		log.Printf("wating %v...", delayms)
-		delay := time.NewTimer(delayms )
+		delay := time.NewTimer(delayms)
 		<-delay.C
 
 		log.Println("polling for the instance running as desired")
@@ -111,9 +125,9 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 		if err != nil && !googleapi.IsNotModified(err) {
 			// Something went wrong and we should stop trying
 			return fmt.Errorf("getting inserted instance %s failed: %v", instanceName, err)
-		} 
+		}
 
-		if err == nil  {
+		if err == nil {
 			log.Printf("got %q, status %q", inst.Name, inst.Status)
 			// Instance has changed but are we in the right state?
 			ip, err := getExternalIP(inst)

@@ -10,6 +10,7 @@ import (
 type InstanceConfig struct {
 	Family string `json:"family"`
 	Hardware string `json:"hardware"`
+	DiskSize  string `json:"disksize,omitempty"`
 	Zone      string `json:"zone,omitempty"`
 	Description string `json:"description,omitempty"`
 	UserDataFile string `json:"userdatafile,omitempty"`
