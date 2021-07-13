@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os/user"
+	"path/filepath"
 
 	"github.com/rjkroege/gocloud/config"
 	"github.com/sanity-io/litter"
@@ -45,6 +46,20 @@ func makeMetadataObject(settings *config.Settings, configName string) (*compute.
 		Key:   "sshkey",
 		Value: &ssshkey,
 	})
+
+	// Ship rclone configuration to the client. 
+	rclonepath := filepath.Join(userinfo.HomeDir, ".config", "rclone", "rclone.conf")
+	rclonekey, err := ioutil.ReadFile(rclonepath)
+	if err != nil {
+		return nil, fmt.Errorf("can't read rclone config %q: %v", rclonepath, err)
+	}
+	srclonekey := string(rclonekey)
+	metas = append(metas, &compute.MetadataItems{
+		Key:   "rcloneconfig",
+		Value: &srclonekey,
+	})
+
+	// TODO(rjk): transfer kopia connection state here.
 
 	// user-data (from ween)
 	// must be in the instance data
