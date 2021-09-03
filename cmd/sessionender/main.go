@@ -3,14 +3,13 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
 	"time"
 
+	"github.com/rjkroege/gocloud/config"
 	"github.com/rjkroege/gocloud/gcp"
 	"github.com/rjkroege/gocloud/who"
-	"golang.org/x/oauth2/google"
 )
 
 
