@@ -25,7 +25,7 @@ const machineblock = `
 {{.Header}}
 Host {{.Name}}
 	HostName {{.IP}}
-	ControlPath ~/.ssh/controlmasters/%r@%h:%p
+	ControlPath ~/.ssh/controlmasters/{{.Name}}-%r@%h:%p
 	ControlMaster auto
 	ControlPersist yes
 	CheckHostIP=no
