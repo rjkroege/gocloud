@@ -9,6 +9,31 @@ of services. This makes it easy to pack a number of Docker containers into a sin
 Presumably I could have used Kubernetes or `docker compose` or something similar to do
 this but this was easy, predictable and cheap.
 
-* `gocloud` extremely WIP tool to launch a GCP node without using `gcloud`
+* `gocloud`  tool to launch a GCP node without using `gcloud`. Smaller and faster than
+using `gcloud` but does so much less. How to use:
 
-Of these, only `sessionender` might be of general interest.
+	* make a configuration file in json format.
+
+		```javascript
+		{
+			"defaultzone": "your-preferred-zone",
+			"projectid": "your-gcp-project",
+			"instancetypes": {
+				"smallnodisk": {
+					"hardware": "e2-small",
+					"family": "your-favourite-image-family",
+					"userdatafile": "path-to-cloudconfig"
+				}
+			}
+		}
+		```
+	
+	* Make one:
+
+		```shell
+		gocloud make smallnodisk myinstance
+		```
+	
+	* I have some related tooling to provision the node. A bare node needs
+	a useful `cloudconfig` file, a configured service account, etc.
+
