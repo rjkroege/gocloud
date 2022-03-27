@@ -1,3 +1,4 @@
+//go:build darwin
 // +build darwin
 
 package config
@@ -42,8 +43,7 @@ func readKeyChain(service, username, accessgroup string) ([]byte, bool, error) {
 	return results[0].Data, true, nil
 }
 
-
-func  getCredential() ( string, error) {
+func getCredential() (string, error) {
 	userinfo, err := user.Current()
 	if err != nil {
 		return "", fmt.Errorf("can't get the user name: %v", err)
@@ -51,9 +51,9 @@ func  getCredential() ( string, error) {
 
 	data, exists, err := readKeyChain("gocloud.liqui.org", userinfo.Username, "groovy.org.liqui.gocloud")
 	if err != nil {
-			return "", fmt.Errorf("can't read credential from keychain: %v", err)
-	} else if  !exists {
-			return "", fmt.Errorf("no keychain. Try adding a keychain login (i.e. \"New Password Item...\") application password for your account (username) and name gocloud.liqui.org with git credential as password")
+		return "", fmt.Errorf("can't read credential from keychain: %v", err)
+	} else if !exists {
+		return "", fmt.Errorf("no keychain. Try adding a keychain login (i.e. \"New Password Item...\") application password for your account (i.e. your username) and name gocloud.liqui.org with git credential as password")
 	}
 
 	return string(data), nil

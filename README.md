@@ -37,3 +37,11 @@ using `gcloud` but does so much less. How to use:
 	* I have some related tooling to provision the node. A bare node needs
 	a useful `cloudconfig` file, a configured service account, etc.
 
+	* I use the [mkconfig](https://github.com/rjkroege/mkconfig) tool to setup a node from
+	within the cloudconfig file.
+
+	* On MacOS, `gocloud` wants to read selected configuration that it will push to the GCP
+	metadata service from the MacOS KeyChain. The `gocloud show-meta` subcommand
+	will show if this is configured correctly.
+
+

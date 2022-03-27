@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/rjkroege/gocloud/gcp"
 	"github.com/alecthomas/kong"
 	"github.com/rjkroege/gocloud/config"
+	"github.com/rjkroege/gocloud/gcp"
 )
 
 var CLI struct {
@@ -15,12 +15,16 @@ var CLI struct {
 
 	Make struct {
 		Config string `arg name:"config" help:"Defined configuration for instance"`
-		Name string `arg name:"name" help:"Name of instance"`
+		Name   string `arg name:"name" help:"Name of instance"`
 	} `cmd help:"Make instance."`
 
 	Del struct {
 		Node string `arg name:"node" help:"Node to remove."`
 	} `cmd help:"Delete node."`
+
+	Describe struct {
+		Name string `arg name:"name" help:"Name of instance"`
+	} `cmd help:"Describe a specific node"`
 
 	Ls struct {
 	} `cmd help:"List running nodes."`
@@ -84,6 +88,13 @@ func main() {
 		}
 		if err := gcp.ShowMetadata(settings, CLI.ShowMeta.Config); err != nil {
 			fmt.Printf("can't show metadata for config %s: %v\n", CLI.ShowMeta.Config, err)
+			os.Exit(-1)
+		}
+	case "describe <name>":
+		log.Println("run DescribeInstance")
+		log.Println(CLI.ConfigFile, settings)
+		if err := gcp.DescribeInstance(settings, CLI.Describe.Name); err != nil {
+			fmt.Printf("can't describe %s: %v\n", CLI.Describe.Name, err)
 			os.Exit(-1)
 		}
 	default:

@@ -1,0 +1,6 @@
+Edit X:gocloud/\+Errors: 1,$d
+X:gocloud/.*\.go: w
+
+
+go build
+go install
