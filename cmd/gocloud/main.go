@@ -69,9 +69,27 @@ func main() {
 			os.Exit(-1)
 		}
 
-		if err := gcp.MakeNode(settings, CLI.Make.Config, CLI.Make.Name); err != nil {
+		ni, err := gcp.MakeNode(settings, CLI.Make.Config, CLI.Make.Name)
+		if err != nil {
 			fmt.Println("can't make node:", err)
 			os.Exit(-1)
+		}
+
+		// Wait for the Ssh server to be running.
+		client, err := gcp.WaitForSsh(settings, ni)
+		if err != nil {
+			fmt.Println("no ssh ever came up: %v", err)
+			os.Exit(-1)
+		}
+		defer client.Close()
+
+		// TODO(rjk): Here, I can use the client connection to do assorted setup.
+		// Monstrous featurism is possible.
+		// TODO(rjk): support reconnection, remote forwarding, etc.?
+
+		// TODO(rjk): AddSshAlias can take a NodeInfo
+		if err := config.AddSshAlias(ni.Name, ni.Addr); err != nil {
+			fmt.Println("can't update ssh for node %v: %v", ni, err)
 		}
 	case "del <node>":
 		log.Println("run del")

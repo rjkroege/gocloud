@@ -18,14 +18,26 @@ func parseDiskSize(szs string) (int64, error) {
 	return strconv.ParseInt(szs, 10, 64)
 }
 
+// NodeInfo holds all the state necessary for subsequent utilities to be
+// able to connect to the node.
+type NodeInfo struct {
+	Name string
+	Addr string
+}
+
+// Ssh returns the address for an SSH connection to the node.
+func (ni *NodeInfo) Ssh() string {
+	return ni.Addr + ":22"
+}
+
 // based on https://github.com/googleapis/google-api-go-client/blob/master/examples/compute.go
 
-func MakeNode(settings *config.Settings, configName, instanceName string) error {
+func MakeNode(settings *config.Settings, configName, instanceName string) (*NodeInfo, error) {
 	ctx, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
 	})
 	if err != nil {
-		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
+		return nil, fmt.Errorf("NewAuthenticatedClient failed: %v", err)
 	}
 
 	familyName := settings.InstanceTypes[configName].Family
@@ -37,7 +49,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 	// TODO(rjk): reuse the service.
 	service, err := compute.New(client)
 	if err != nil {
-		return fmt.Errorf("unable to create Compute service: %v", err)
+		return nil, fmt.Errorf("unable to create Compute service: %v", err)
 	}
 
 	projectID := settings.ProjectId
@@ -49,13 +61,13 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 
 	disksize, err := parseDiskSize(settings.InstanceTypes[configName].DiskSize)
 	if err != nil {
-		return fmt.Errorf("unable to create Compute service, bad disk size: %q %v", settings.InstanceTypes[configName].DiskSize, err)
+		return nil, fmt.Errorf("unable to create Compute service, bad disk size: %q %v", settings.InstanceTypes[configName].DiskSize, err)
 	}
 	// TODO(rjk): add disk type (e.g. flash, persistent, etc.)
 
 	metadata, err := makeMetadataObject(settings, configName)
 	if err != nil {
-		return fmt.Errorf("can't make metadata: %v", err)
+		return nil, fmt.Errorf("can't make metadata: %v", err)
 	}
 
 	instance := &compute.Instance{
@@ -108,7 +120,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 
 	op, err := service.Instances.Insert(projectID, zone, instance).Context(ctx).Do()
 	if err != nil {
-		return fmt.Errorf("instance insertion failed: %v", err)
+		return nil, fmt.Errorf("instance insertion failed: %v", err)
 	}
 
 	etag := op.Header.Get("Etag")
@@ -125,7 +137,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 		inst, err := service.Instances.Get(projectID, zone, instanceName).Context(ctx).IfNoneMatch(etag).Do()
 		if err != nil && !googleapi.IsNotModified(err) {
 			// Something went wrong and we should stop trying
-			return fmt.Errorf("getting inserted instance %s failed: %v", instanceName, err)
+			return nil, fmt.Errorf("getting inserted instance %s failed: %v", instanceName, err)
 		}
 
 		if err == nil {
@@ -134,13 +146,17 @@ func MakeNode(settings *config.Settings, configName, instanceName string) error 
 			ip, err := getExternalIP(inst)
 			if err == nil && inst.Status == "RUNNING" {
 				// Yes, it's running and has an IP.
-				return config.AddSshAlias(inst.Name, ip)
+				return &NodeInfo{
+					Name: inst.Name,
+					Addr: ip,
+				}, nil
+				//				return config.AddSshAlias(inst.Name, ip)
 			}
 			// Not in the right state yet. Try again.
 			etag = inst.Header.Get("Etag")
 		}
 	}
-	return fmt.Errorf("too many tries failing to get running state for %s", instanceName)
+	return nil, fmt.Errorf("too many tries failing to get running state for %s", instanceName)
 }
 
 // getExternalIP digs through inst looking for its external (i.e. via NAT) IP

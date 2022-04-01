@@ -8,6 +8,7 @@ require (
 	github.com/keybase/go-keychain v0.0.0-20201121013009-976c83ec27a6
 	github.com/sanity-io/litter v1.3.0
 	github.com/sergi/go-diff v1.1.0
+	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/oauth2 v0.0.0-20201203001011-0b49973bad19
 	google.golang.org/api v0.36.0
 	gopkg.in/yaml.v2 v2.2.4

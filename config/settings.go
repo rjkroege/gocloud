@@ -2,26 +2,27 @@ package config
 
 import (
 	"encoding/json"
-	"path/filepath"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type InstanceConfig struct {
-	Family string `json:"family"`
-	Hardware string `json:"hardware"`
-	DiskSize  string `json:"disksize,omitempty"`
-	Zone      string `json:"zone,omitempty"`
-	Description string `json:"description,omitempty"`
+	Family       string `json:"family"`
+	Hardware     string `json:"hardware"`
+	DiskSize     string `json:"disksize,omitempty"`
+	Zone         string `json:"zone,omitempty"`
+	Description  string `json:"description,omitempty"`
 	UserDataFile string `json:"userdatafile,omitempty"`
 }
 
 type Settings struct {
-	DefaultZone string `json:"defaultzone"`
-	ProjectId string `json:"projectid"`
-	InstanceTypes map[string]InstanceConfig  `json:"instancetypes"`
-	SshPublicKeyFile string `json:"sshpublickey,omitempty"`
-	Credential string `json:"credential,omitempty"`
+	DefaultZone       string                    `json:"defaultzone"`
+	ProjectId         string                    `json:"projectid"`
+	InstanceTypes     map[string]InstanceConfig `json:"instancetypes"`
+	SshPublicKeyFile  string                    `json:"sshpublickey,omitempty"`
+	SshPrivateKeyFile string                    `json:"sshprivatekey,omitempty"`
+	Credential        string                    `json:"credential,omitempty"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -55,7 +56,7 @@ func (s *Settings) UniqueFamilies() []string {
 		fm[v.Family] = struct{}{}
 	}
 	fa := make([]string, 0)
-	for k, _ := range fm {
+	for k := range fm {
 		fa = append(fa, k)
 	}
 	return fa
@@ -71,14 +72,24 @@ func (s *Settings) Description(instancetype, name string) string {
 
 func (s *Settings) PublicKeyFile(home string) string {
 	if s.SshPublicKeyFile != "" {
-		
 		if filepath.IsAbs(s.SshPublicKeyFile) {
 			return s.SshPublicKeyFile
 		} else {
 			return filepath.Join(home, ".ssh", s.SshPublicKeyFile)
 		}
 	}
-	return filepath.Join(home, ".ssh",  "id_rsa.pub")
+	return filepath.Join(home, ".ssh", "id_rsa.pub")
+}
+
+func (s *Settings) PrivateKeyFile(home string) string {
+	if s.SshPrivateKeyFile != "" {
+		if filepath.IsAbs(s.SshPrivateKeyFile) {
+			return s.SshPrivateKeyFile
+		} else {
+			return filepath.Join(home, ".ssh", s.SshPrivateKeyFile)
+		}
+	}
+	return filepath.Join(home, ".ssh", "id_rsa")
 }
 
 func (s *Settings) GitCredential() (string, error) {
@@ -86,7 +97,7 @@ func (s *Settings) GitCredential() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if cred  != "" {
+	if cred != "" {
 		return cred, nil
 	}
 	return s.Credential, nil

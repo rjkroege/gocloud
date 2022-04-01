@@ -1,13 +1,11 @@
 package gcp
 
 import (
- 	"fmt"
-// 	"net/url"
-// 	"path"
-// 
+	"fmt"
+
 	"github.com/rjkroege/gocloud/config"
-	compute "google.golang.org/api/compute/v1"
 	"github.com/sanity-io/litter"
+	compute "google.golang.org/api/compute/v1"
 )
 
 // DescribeInstance describes instance |name| with a sump of its JSON
@@ -18,8 +16,8 @@ func DescribeInstance(settings *config.Settings, name string) error {
 		return err
 	}
 
-//	litter.Dump(instance)
-	litter.Dump(pullKeys(instance))
+	litter.Dump(instance)
+	//	litter.Dump(pullKeys(instance))
 
 	return nil
 }
@@ -40,11 +38,12 @@ func getInstance(settings *config.Settings, name string) (*compute.Instance, err
 	projectId := settings.ProjectId
 	zone := settings.DefaultZone
 
-// It is impossible to filter to a single metadata element. I can however
-// shrink the total response size by just asking for the metadata key
-// strings. I find this limitation perplexing. This is what the Fields() method
-// does.
-	instance, err := service.Instances.Get(projectId, zone, name).Fields("metadata/items/key").Do()
+	// It is impossible to filter to a single metadata element. I can however
+	// shrink the total response size by just asking for the metadata key
+	// strings. I find this limitation perplexing. This is what the Fields() method
+	// does. Accept it.
+	//	instance, err := service.Instances.Get(projectId, zone, name).Fields("metadata/items/key").Do()
+	instance, err := service.Instances.Get(projectId, zone, name).Do()
 	if err != nil {
 		return nil, fmt.Errorf("getting instance failed: %v", err)
 	}
@@ -53,12 +52,11 @@ func getInstance(settings *config.Settings, name string) (*compute.Instance, err
 
 func pullKeys(instance *compute.Instance) []string {
 	keys := make([]string, 0, len(instance.Metadata.Items))
-	for _, kn := range(instance.Metadata.Items) {
+	for _, kn := range instance.Metadata.Items {
 		keys = append(keys, kn.Key)
 	}
 	return keys
 }
-
 
 func GetMetadataKeys(settings *config.Settings, name string) ([]string, error) {
 	instance, err := getInstance(settings, name)
@@ -68,4 +66,3 @@ func GetMetadataKeys(settings *config.Settings, name string) ([]string, error) {
 
 	return pullKeys(instance), nil
 }
-
