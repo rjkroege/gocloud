@@ -1,6 +1,8 @@
 package gcp
 
 import (
+	"crypto/rand"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"os/user"
@@ -9,31 +11,53 @@ import (
 	"github.com/rjkroege/gocloud/config"
 	"github.com/sanity-io/litter"
 	compute "google.golang.org/api/compute/v1"
+
+	"log"
 )
 
-func makeMetadataObject(settings *config.Settings, configName string) (*compute.Metadata, error) {
-	metas := make([]*compute.MetadataItems, 0)
+func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
+	converted := make([]*compute.MetadataItems, 0)
+
+	for k, v := range metas {
+		// Taking the address of v is not well-defined.
+		rv := v
+		log.Printf("key[%q] = %#v", k, v)
+		converted = append(converted, &compute.MetadataItems{
+			Key:   k,
+			Value: &rv,
+		})
+	}
+
+	return &compute.Metadata{
+		Items: converted,
+	}
+}
+
+func makeMetadataObject(settings *config.Settings, configName string) (map[string]string, error) {
+	metas := make(map[string]string)
 
 	// username
 	userinfo, err := user.Current()
 	if err != nil {
 		return nil, fmt.Errorf("can't get user: %v", err)
 	}
-	suname := string(userinfo.Username)
-	metas = append(metas, &compute.MetadataItems{
-		Key:   "username",
-		Value: &suname,
-	})
+	metas["username"] = string(userinfo.Username)
+
+	// unique token identifying this node
+	rawtoken := make([]byte, 16)
+	_, err = rand.Read(rawtoken)
+	if err != nil {
+		return nil, fmt.Errorf("can't make random token: %v", err)
+	}
+	// There can be nulls in token so encode.
+	metas["instancetoken"] = base64.StdEncoding.EncodeToString(rawtoken)
 
 	// gitcredential (read from the keychain)
 	cred, err := settings.GitCredential()
 	if err != nil {
 		return nil, fmt.Errorf("no git credential: %v", err)
 	}
-	metas = append(metas, &compute.MetadataItems{
-		Key:   "gitcredential",
-		Value: &cred,
-	})
+	metas["gitcredential"] = cred
 
 	// ssh key
 	sshpath := settings.PublicKeyFile(userinfo.HomeDir)
@@ -41,25 +65,15 @@ func makeMetadataObject(settings *config.Settings, configName string) (*compute.
 	if err != nil {
 		return nil, fmt.Errorf("can't read ssh key %q: %v", sshpath, err)
 	}
-	ssshkey := string(sshkey)
-	metas = append(metas, &compute.MetadataItems{
-		Key:   "sshkey",
-		Value: &ssshkey,
-	})
+	metas["sshkey"] = string(sshkey)
 
-	// Ship rclone configuration to the client. 
+	// Ship rclone configuration to the client.
 	rclonepath := filepath.Join(userinfo.HomeDir, ".config", "rclone", "rclone.conf")
 	rclonekey, err := ioutil.ReadFile(rclonepath)
 	if err != nil {
 		return nil, fmt.Errorf("can't read rclone config %q: %v", rclonepath, err)
 	}
-	srclonekey := string(rclonekey)
-	metas = append(metas, &compute.MetadataItems{
-		Key:   "rcloneconfig",
-		Value: &srclonekey,
-	})
-
-	// TODO(rjk): transfer kopia connection state here.
+	metas["rcloneconfig"] = string(rclonekey)
 
 	// user-data (from ween)
 	// must be in the instance data
@@ -71,15 +85,9 @@ func makeMetadataObject(settings *config.Settings, configName string) (*compute.
 	if err != nil {
 		return nil, fmt.Errorf("can't read userdata file %q: %v", userdatapath, err)
 	}
-	suserdata := string(userdata)
-	metas = append(metas, &compute.MetadataItems{
-		Key:   "user-data",
-		Value: &suserdata,
-	})
+	metas["user-data"] = string(userdata)
 
-	return &compute.Metadata{
-		Items: metas,
-	}, nil
+	return metas, nil
 }
 
 func ShowMetadata(settings *config.Settings, configName string) error {
@@ -89,5 +97,6 @@ func ShowMetadata(settings *config.Settings, configName string) error {
 	}
 
 	litter.Dump(metadata)
+	litter.Dump(convertMapToGcpFormat(metadata))
 	return nil
 }

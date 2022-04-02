@@ -21,8 +21,9 @@ func parseDiskSize(szs string) (int64, error) {
 // NodeInfo holds all the state necessary for subsequent utilities to be
 // able to connect to the node.
 type NodeInfo struct {
-	Name string
-	Addr string
+	Name  string
+	Addr  string
+	Token string
 }
 
 // Ssh returns the address for an SSH connection to the node.
@@ -88,7 +89,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 				},
 			},
 		},
-		Metadata: metadata,
+		Metadata: convertMapToGcpFormat(metadata),
 		NetworkInterfaces: []*compute.NetworkInterface{
 			{
 				AccessConfigs: []*compute.AccessConfig{
@@ -106,7 +107,6 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 				Email: "default",
 				Scopes: []string{
 					// TODO(rjk): I have no idea if this will do what I want.
-					//
 					compute.DevstorageFullControlScope,
 					compute.ComputeScope,
 					compute.CloudPlatformScope,
@@ -134,6 +134,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 		<-delay.C
 
 		log.Println("polling for the instance running as desired")
+		// TODO(rjk): Could use Fields() here?
 		inst, err := service.Instances.Get(projectID, zone, instanceName).Context(ctx).IfNoneMatch(etag).Do()
 		if err != nil && !googleapi.IsNotModified(err) {
 			// Something went wrong and we should stop trying
@@ -147,10 +148,10 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 			if err == nil && inst.Status == "RUNNING" {
 				// Yes, it's running and has an IP.
 				return &NodeInfo{
-					Name: inst.Name,
-					Addr: ip,
+					Name:  inst.Name,
+					Addr:  ip,
+					Token: metadata["instancetoken"],
 				}, nil
-				//				return config.AddSshAlias(inst.Name, ip)
 			}
 			// Not in the right state yet. Try again.
 			etag = inst.Header.Get("Etag")
