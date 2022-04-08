@@ -5,14 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io/ioutil"
+	"os/exec"
 	"os/user"
 	"path/filepath"
+	"regexp"
 
 	"github.com/rjkroege/gocloud/config"
 	"github.com/sanity-io/litter"
 	compute "google.golang.org/api/compute/v1"
-
-	"log"
 )
 
 func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
@@ -21,7 +21,7 @@ func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
 	for k, v := range metas {
 		// Taking the address of v is not well-defined.
 		rv := v
-		log.Printf("key[%q] = %#v", k, v)
+		// log.Printf("key[%q] = %#v", k, v)
 		converted = append(converted, &compute.MetadataItems{
 			Key:   k,
 			Value: &rv,
@@ -52,6 +52,7 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	// There can be nulls in token so encode.
 	metas["instancetoken"] = base64.StdEncoding.EncodeToString(rawtoken)
 
+	// TODO(rjk): Some of these should be optional.
 	// gitcredential (read from the keychain)
 	cred, err := settings.GitCredential()
 	if err != nil {
@@ -87,6 +88,13 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	}
 	metas["user-data"] = string(userdata)
 
+	// Insert the kopia connect restoration code.
+	kopiaauth, err := readKopiaConfiguration()
+	if err != nil {
+		return nil, fmt.Errorf("kopia connection command not available: %v", err)
+	}
+	metas["kopiareconnection"] = kopiaauth
+
 	return metas, nil
 }
 
@@ -99,4 +107,23 @@ func ShowMetadata(settings *config.Settings, configName string) error {
 	litter.Dump(metadata)
 	litter.Dump(convertMapToGcpFormat(metadata))
 	return nil
+}
+
+func readKopiaConfiguration() (string, error) {
+	cmd := exec.Command("kopia", "repository", "status", "-ts")
+
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("can't run the kopia commandL: %v", err)
+	}
+
+	const regexpsrc = "\n\\$(.*)\n"
+	re := regexp.MustCompile(regexpsrc)
+
+	res := re.FindSubmatch(output)
+
+	if len(res) != 2 {
+		return "", fmt.Errorf("can't find the kopia auth string in the spew")
+	}
+	return string(res[1]), nil
 }
