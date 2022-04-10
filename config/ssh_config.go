@@ -45,7 +45,6 @@ func makeFieldValues(name, ip string) *fieldValues {
 	}
 }
 
-
 func AddSshAlias(name, ip string) error {
 	u, err := user.Current()
 	if err != nil {

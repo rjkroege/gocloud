@@ -14,6 +14,7 @@ func NewAuthenticatedClient(scopes []string) (context.Context, *http.Client, err
 
 	/*
 		// TODO(rjk): Fix this.
+		// It's commented out. What does it do?
 		if *debug {
 			ctx = context.WithValue(ctx, oauth2.HTTPClient, &http.Client{
 				Transport: gcp.NewTransport(http.DefaultTransport),

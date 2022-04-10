@@ -83,13 +83,11 @@ func main() {
 		}
 		defer client.Close()
 
-		// TODO(rjk): Here, I can use the client connection to do assorted setup.
 		if err := gcp.ConfigureViaSsh(settings, ni, client); err != nil {
 			fmt.Printf("ConfigureViaSsh failed: %v", err)
 			// Should I exit here?
 		}
 
-		// TODO(rjk): AddSshAlias can take a NodeInfo
 		if err := config.AddSshAlias(ni.Name, ni.Addr); err != nil {
 			fmt.Println("can't update ssh for node %v: %v", ni, err)
 		}

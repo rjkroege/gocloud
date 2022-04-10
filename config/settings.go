@@ -38,7 +38,7 @@ func Read(path string) (*Settings, error) {
 		return nil, fmt.Errorf("error parsing config %q: %v", path, err)
 	}
 
-	// TODO(rjk): Validate.
+	// TODO(rjk): Validate the configurable settings.
 	return settings, nil
 }
 
