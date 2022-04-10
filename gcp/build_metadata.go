@@ -15,13 +15,14 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
+// convertMapToGcpFormat constructs a GCP compute.Metadata representation
+// of a key-value map out of a key-value map of metadata attributes.
 func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
 	converted := make([]*compute.MetadataItems, 0)
 
 	for k, v := range metas {
 		// Taking the address of v is not well-defined.
 		rv := v
-		// log.Printf("key[%q] = %#v", k, v)
 		converted = append(converted, &compute.MetadataItems{
 			Key:   k,
 			Value: &rv,
@@ -33,6 +34,7 @@ func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
 	}
 }
 
+// makeMetadataObject makes a Go map of metadata key-value pairs.
 func makeMetadataObject(settings *config.Settings, configName string) (map[string]string, error) {
 	metas := make(map[string]string)
 
@@ -52,15 +54,14 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	// There can be nulls in token so encode.
 	metas["instancetoken"] = base64.StdEncoding.EncodeToString(rawtoken)
 
-	// TODO(rjk): Some of these should be optional.
 	// gitcredential (read from the keychain)
-	cred, err := settings.GitCredential()
-	if err != nil {
-		return nil, fmt.Errorf("no git credential: %v", err)
+	if cred, err := settings.GitCredential(); err != nil {
+		fmt.Printf("can't add git credential to instance metadata because no git credential: %v", err)
+	} else {
+		metas["gitcredential"] = cred
 	}
-	metas["gitcredential"] = cred
 
-	// ssh key
+	// ssh key (always needed)
 	sshpath := settings.PublicKeyFile(userinfo.HomeDir)
 	sshkey, err := ioutil.ReadFile(sshpath)
 	if err != nil {
@@ -68,16 +69,15 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	}
 	metas["sshkey"] = string(sshkey)
 
-	// Ship rclone configuration to the client.
+	// Ship rclone configuration to the client if it exists.
 	rclonepath := filepath.Join(userinfo.HomeDir, ".config", "rclone", "rclone.conf")
-	rclonekey, err := ioutil.ReadFile(rclonepath)
-	if err != nil {
-		return nil, fmt.Errorf("can't read rclone config %q: %v", rclonepath, err)
+	if rclonekey, err := ioutil.ReadFile(rclonepath); err != nil {
+		fmt.Printf("not adding rclone config to instance metadata because can't read rclone config %q: %v", rclonepath, err)
+	} else {
+		metas["rcloneconfig"] = string(rclonekey)
 	}
-	metas["rcloneconfig"] = string(rclonekey)
 
-	// user-data (from ween)
-	// must be in the instance data
+	// instance configuration data is required
 	userdatapath := settings.InstanceTypes[configName].UserDataFile
 	if userdatapath == "" {
 		return nil, fmt.Errorf("instancetype %q didn't specify userdatafile", configName)
@@ -89,15 +89,16 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	metas["user-data"] = string(userdata)
 
 	// Insert the kopia connect restoration code.
-	kopiaauth, err := readKopiaConfiguration()
-	if err != nil {
-		return nil, fmt.Errorf("kopia connection command not available: %v", err)
+	if kopiaauth, err := readKopiaConfiguration(); err != nil {
+		fmt.Errorf("not adding kopia reconnection string to instance metadata because: %v", err)
+	} else {
+		metas["kopiareconnection"] = kopiaauth
 	}
-	metas["kopiareconnection"] = kopiaauth
 
 	return metas, nil
 }
 
+// ShowMetadata will display the metadata object.
 func ShowMetadata(settings *config.Settings, configName string) error {
 	metadata, err := makeMetadataObject(settings, configName)
 	if err != nil {
@@ -109,6 +110,7 @@ func ShowMetadata(settings *config.Settings, configName string) error {
 	return nil
 }
 
+// readKopiaConfiguration runs kopia to get a reconnection string.
 func readKopiaConfiguration() (string, error) {
 	cmd := exec.Command("kopia", "repository", "status", "-ts")
 

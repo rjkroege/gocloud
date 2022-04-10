@@ -16,7 +16,7 @@ import (
 const metabase = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 
 // TODO(rjk): This needs tests that can run locally. For that, I'd need a
-// mock ssh server and a mock metadata service?
+// mock ssh server and a mock metadata service? (Yes?)
 
 // Monstrous featurism is possible.
 // TODO(rjk): support reconnection, remote forwarding, etc.?
@@ -52,7 +52,9 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	}
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
+
 	// TODO(rjk): This shouldn't assume my username right?
+	// The nice configuration choice is to specify this in configuration file.
 	// I'm connected here as me (i.e. rjkroege) so all the perms should be sane?
 	cmd := "cd /home/rjkroege/tools/scripts; mk"
 	if err := session.Run(cmd); err != nil {
@@ -64,12 +66,11 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 
 	// TODO(rjk): Setup socket forwards for Plan9 services
 	// TODO(rjk): Figure out (once and for all) if I'm mounting or synching
+	// Answer: it depends. 
 	//
 	// If synching: fold into this code? (But what I want to sync / mount differs based
 	// on the project. The project needs to determine the direction and file source
 	// I need a way to let the remote connect.
-
-	// TODO(rjk): Create a shell
 
 	return nil
 }
