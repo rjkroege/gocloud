@@ -22,6 +22,7 @@ func parseDiskSize(szs string) (int64, error) {
 // able to connect to the node.
 type NodeInfo struct {
 	Name  string
+	ConfigName string
 	Addr  string
 	Token string
 }
@@ -149,6 +150,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 				// Yes, it's running and has an IP.
 				return &NodeInfo{
 					Name:  inst.Name,
+					ConfigName: configName,
 					Addr:  ip,
 					Token: metadata["instancetoken"],
 				}, nil

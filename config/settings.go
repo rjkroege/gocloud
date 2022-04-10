@@ -14,6 +14,7 @@ type InstanceConfig struct {
 	Zone         string `json:"zone,omitempty"`
 	Description  string `json:"description,omitempty"`
 	UserDataFile string `json:"userdatafile,omitempty"`
+	PostSshConfig string `json:"postsshconfig,omitempty"`
 }
 
 type Settings struct {

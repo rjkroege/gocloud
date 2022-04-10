@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net"
 	"net/http"
 	"os"
@@ -18,11 +17,10 @@ const metabase = "http://metadata.google.internal/computeMetadata/v1/instance/at
 // TODO(rjk): This needs tests that can run locally. For that, I'd need a
 // mock ssh server and a mock metadata service? (Yes?)
 
-// Monstrous featurism is possible.
-// TODO(rjk): support reconnection, remote forwarding, etc.?
+// ConfigureViaSsh invokes the specified command string via ssh to
+// perform additional configuration of the target node. Significant
+// additional featurism is possible.
 func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client) error {
-	log.Println("running ConfigureViaSsh")
-
 	// I have no way of knowing the hostKey because I didn't set it. The
 	// system is newly launched and it makes the key for itself. But: I could
 	// make a bespoke key. Then, the "public" key would also be private. Or I
@@ -53,24 +51,12 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	session.Stdout = os.Stdout
 	session.Stderr = os.Stderr
 
-	// TODO(rjk): This shouldn't assume my username right?
-	// The nice configuration choice is to specify this in configuration file.
-	// I'm connected here as me (i.e. rjkroege) so all the perms should be sane?
-	cmd := "cd /home/rjkroege/tools/scripts; mk"
-	if err := session.Run(cmd); err != nil {
-		return fmt.Errorf("can't run $q: %v", cmd, err)
+	cmd := settings.InstanceTypes[ni.ConfigName].PostSshConfig
+	if cmd != "" {
+		if err := session.Run(cmd); err != nil {
+			return fmt.Errorf("can't run $q: %v", cmd, err)
+		}
 	}
-
-	// TODO(rjk): Setup kopia automatically (it's time consuming so needs to happen asynchronously?)
-	// Some nodes purposes may not want kopia.
-
-	// TODO(rjk): Setup socket forwards for Plan9 services
-	// TODO(rjk): Figure out (once and for all) if I'm mounting or synching
-	// Answer: it depends. 
-	//
-	// If synching: fold into this code? (But what I want to sync / mount differs based
-	// on the project. The project needs to determine the direction and file source
-	// I need a way to let the remote connect.
 
 	return nil
 }
