@@ -9,17 +9,18 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-func List(settings *config.Settings) error {
+
+func getInstances(settings *config.Settings) (*compute.InstanceList, error) {
 	_, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
 	})
 	if err != nil {
-		return fmt.Errorf("NewAuthenticatedClient failed: %v", err)
+		return nil, fmt.Errorf("NewAuthenticatedClient failed: %v", err)
 	}
 
 	service, err := compute.New(client)
 	if err != nil {
-		return fmt.Errorf("Unable to create Compute service: %v", err)
+		return nil, fmt.Errorf("Unable to create Compute service: %v", err)
 	}
 
 	projectId := settings.ProjectId
@@ -27,7 +28,12 @@ func List(settings *config.Settings) error {
 	zone := settings.DefaultZone
 
 	// List the current instances.
-	res, err := service.Instances.List(projectId, zone).Do()
+	return  service.Instances.List(projectId, zone).Do()
+}
+
+
+func List(settings *config.Settings) error {
+	res, err := getInstances(settings)
 	if err != nil {
 		return fmt.Errorf("getting instance list failed: %v", err)
 	}
@@ -48,4 +54,20 @@ func List(settings *config.Settings) error {
 		fmt.Println(inst.Name, path.Base(machurl.Path), ip)
 	}
 	return nil
+}
+
+func GetNodeIp(settings *config.Settings, wantednode string) (string, error) {
+	res, err  := getInstances(settings)
+	if err != nil {
+		return "", fmt.Errorf("getting instance list failed: %v", err)
+	}
+
+	for _, inst := range res.Items {
+		if inst.Name == wantednode {
+			return getExternalIP(inst)
+		}
+	}
+
+	// It's not an error that the node isn't up.
+	return "", nil
 }
