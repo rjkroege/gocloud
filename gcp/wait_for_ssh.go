@@ -15,7 +15,7 @@ import (
 
 // MakeSshClientConfig populates an ssh.ClientConfig for reuse by each
 // connection attempt.
-func MakeSshClientConfig(settings *config.Settings, ni *NodeInfo) (*ssh.ClientConfig, error) {
+func MakeSshClientConfig(settings *config.Settings) (*ssh.ClientConfig, error) {
 	// username
 	userinfo, err := user.Current()
 	if err != nil {
@@ -52,7 +52,7 @@ func MakeSshClientConfig(settings *config.Settings, ni *NodeInfo) (*ssh.ClientCo
 // Run this after making the node.
 func WaitForSsh(settings *config.Settings, ni *NodeInfo) (*ssh.Client, error) {
 	log.Println("run WaitForSsh")
-	sshconf, err := MakeSshClientConfig(settings, ni)
+	sshconf, err := MakeSshClientConfig(settings)
 	if err != nil {
 		return nil, fmt.Errorf("can't MakeSshClientConfig: %v", err)
 	}
@@ -79,7 +79,6 @@ func WaitForSsh(settings *config.Settings, ni *NodeInfo) (*ssh.Client, error) {
 }
 
 func connectToSsh(sshconf *ssh.ClientConfig, addr string) (*ssh.Client, error) {
-
 	client, err := ssh.Dial("tcp", addr, sshconf)
 	if err != nil {
 		return nil, err
