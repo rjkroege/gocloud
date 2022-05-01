@@ -1,0 +1,9 @@
+Edit X:gocloud/\+Errors: 1,$d
+X:gocloud/.*\.go: w
+
+GOOS=linux GOARCH=amd64 go build ./cmd/sessionender && scp sessionender ween:/usr/local/bin/sessionender-dev
+
+sessionender-dev -delay 30 -n 
+
+
+go build ./cmd/sessionender
