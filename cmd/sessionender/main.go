@@ -36,7 +36,7 @@ func main() {
 	}
 
 	// Make a keep-alive socket.
-	c, err := setupkeepalive()
+	c, err := setupkeepalive(config.LocalNameSpace(""))
 	if err != nil {
 		log.Println("setupkeepalive had a sad:", err)
 	}

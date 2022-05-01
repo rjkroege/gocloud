@@ -6,15 +6,11 @@ import (
 	"net"
 	"os"
 	"path/filepath"
-
-	"github.com/rjkroege/gocloud/config"
 )
 
 // setupkeepalive
-func setupkeepalive() (<-chan int, error) {
+func setupkeepalive(namespace string) (<-chan int, error) {
 	c := make(chan int)
-
-	namespace := config.LocalNameSpace()
 
 	// Make a directory to hold the socket if it doesn't exist.
 	if err := os.MkdirAll(namespace, 0777); err != nil {
@@ -31,6 +27,12 @@ func setupkeepalive() (<-chan int, error) {
 	listener, err := net.Listen("unix", socketpath)
 	if err != nil {
 		return c, fmt.Errorf("net.Listen %q: %v", socketpath, err)
+	}
+
+	// Let users other than root use the socket.
+	if err := os.Chmod(socketpath, 0666); err != nil {
+		listener.Close()
+		return c, fmt.Errorf("can't chmod %q: %v", socketpath, err)
 	}
 
 	go func(listener net.Listener, c chan<- int) {

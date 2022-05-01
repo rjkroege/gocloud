@@ -54,7 +54,7 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	cmd := settings.InstanceTypes[ni.ConfigName].PostSshConfig
 	if cmd != "" {
 		if err := session.Run(cmd); err != nil {
-			return fmt.Errorf("can't run $q: %v", cmd, err)
+			return fmt.Errorf("can't run %q: %v", cmd, err)
 		}
 	}
 

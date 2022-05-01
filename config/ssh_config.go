@@ -1,24 +1,22 @@
 package config
 
 import (
-	"text/template"
-	"os"
-	"regexp"
+	"bufio"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"os/user"
 	"path/filepath"
-	"io/ioutil"
-	"bufio"
+	"regexp"
+	"text/template"
 )
 
-
 type fieldValues struct {
-	Name string
-	IP string
+	Name   string
+	IP     string
 	Header string
 	Footer string
 }
-
 
 // TODO(rjk): Consider letting the block innards be specified by the config file.
 const machineblock = `
@@ -38,13 +36,16 @@ const footer = "#---"
 
 func makeFieldValues(name, ip string) *fieldValues {
 	return &fieldValues{
-		Name: name,
-		IP: ip,
+		Name:   name,
+		IP:     ip,
 		Header: fmt.Sprintf(header, name),
 		Footer: footer,
 	}
 }
 
+// AddSshAlias adds a block to the user's ssh configuration file that
+// provides an ssh alias to (typically of a created GCP node) ip
+// (address).
 func AddSshAlias(name, ip string) error {
 	u, err := user.Current()
 	if err != nil {
@@ -52,15 +53,17 @@ func AddSshAlias(name, ip string) error {
 	}
 	h := u.HomeDir
 
-	p := filepath.Join(u.HomeDir, ".ssh" , "controlmasters")
+	p := filepath.Join(u.HomeDir, ".ssh", "controlmasters")
 	if err := os.MkdirAll(p, 0700); err != nil {
 		return fmt.Errorf("can't make %q: %v", p, err)
 	}
 	p = filepath.Join(h, ".ssh", "config")
-	
+
 	return insertNameBlock(p, makeFieldValues(name, ip))
 }
 
+// insertNameBlock updates sshfile (which needs to be an ssh config file)
+// with a machine configuration block specified by fields.
 func insertNameBlock(sshfile string, fields *fieldValues) error {
 	// TODO(rjk): need to error check templates before letting them be configurable.
 	var t = template.Must(template.New("sshblock").Parse(machineblock))
@@ -70,7 +73,7 @@ func insertNameBlock(sshfile string, fields *fieldValues) error {
 		// No sshfile is not an error.
 		filebuffer = []byte{}
 	}
-	
+
 	tmpfilename := sshfile + ".tmp"
 	tfd, err := os.OpenFile(tmpfilename, os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -80,7 +83,7 @@ func insertNameBlock(sshfile string, fields *fieldValues) error {
 	defer os.Remove(tmpfilename)
 	fd := bufio.NewWriter(tfd)
 
-	pattern := "(?s)" +  "\n?" + fields.Header + ".*?" + fields.Footer  + "\n?"
+	pattern := "(?s)" + "\n?" + fields.Header + ".*?" + fields.Footer + "\n?"
 	// log.Printf("complete regexp %q", pattern )
 	re := regexp.MustCompile(pattern)
 	locs := re.FindIndex(filebuffer)
@@ -138,5 +141,3 @@ func SafeReplaceFile(newpath, oldpath string) error {
 	}
 	return nil
 }
-
-

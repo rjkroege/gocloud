@@ -78,7 +78,7 @@ func main() {
 		// Wait for the Ssh server to be running.
 		client, err := gcp.WaitForSsh(settings, ni)
 		if err != nil {
-			fmt.Println("no ssh ever came up: %v", err)
+			fmt.Printf("no ssh ever came up: %v", err)
 			os.Exit(-1)
 		}
 		defer client.Close()
@@ -89,7 +89,7 @@ func main() {
 		}
 
 		if err := config.AddSshAlias(ni.Name, ni.Addr); err != nil {
-			fmt.Println("can't update ssh for node %v: %v", ni, err)
+			fmt.Printf("can't update ssh for node %v: %v", ni, err)
 		}
 	case "del <node>":
 		log.Println("run del")
