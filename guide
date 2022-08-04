@@ -7,3 +7,5 @@ sessionender-dev -delay 30 -n
 
 
 go build ./cmd/sessionender
+
+go test ./...

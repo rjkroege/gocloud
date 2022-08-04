@@ -9,8 +9,6 @@ import (
 
 	"github.com/rjkroege/gocloud/config"
 	compute "google.golang.org/api/compute/v1"
-	//	"log"
-	//	"github.com/sanity-io/litter"
 )
 
 // ListImages lists available and default selected images for each image family
@@ -51,17 +49,26 @@ func parseCosName(name string) (string, VersionTuple, error) {
 	vt := VersionTuple{0, 0, 0, 0}
 
 	ps := strings.Split(name, "-")
-
 	if ps[0] != "cos" {
 		return "", vt, fmt.Errorf("can't parse %q", name)
 	}
 	channel := "lts"
-	switch ps[1] {
-	case "stable", "beta", "dev":
-		channel = ps[1]
-		ps = ps[2:]
-	default:
+
+	// Chop the "cos"
+	ps = ps[1:]
+
+	// Remove the processor.
+	switch ps[0] {
+	case "arm64":
 		ps = ps[1:]
+	}
+
+	switch ps[0] {
+	case "stable", "beta", "dev":
+		channel = ps[0]
+		ps = ps[1:]
+	default:
+		ps = ps[0:]
 	}
 
 	for i, s := range ps {

@@ -4,3 +4,5 @@ X:gocloud/.*\.go: w
 
 go build
 go install
+
+{./gocloud ls-images}
