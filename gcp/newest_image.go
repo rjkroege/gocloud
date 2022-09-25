@@ -111,6 +111,10 @@ func findNewestStableCosImage(ctx context.Context, client *http.Client) (*comput
 	}
 
 	for _, im := range notdeprecated {
+		// Skip arm processors.
+		if strings.Index(im.Name, "arm64") > -1 {
+			continue
+		}
 		c, _, err := parseCosName(im.Name)
 		if err != nil {
 			return nil, fmt.Errorf("can't parse: %v", err)
