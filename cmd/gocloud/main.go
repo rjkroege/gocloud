@@ -20,7 +20,7 @@ var CLI struct {
 
 	Del struct {
 		Node string `arg name:"node" help:"Node to remove."`
-	} `cmd help:"Delete node."`
+	} `cmd help:"Delete node." aliases:"rm"`
 
 	Describe struct {
 		Name string `arg name:"name" help:"Name of instance"`

@@ -4,7 +4,7 @@ go 1.15
 
 require (
 	cloud.google.com/go v0.73.0
-	github.com/alecthomas/kong v0.2.12
+	github.com/alecthomas/kong v0.6.1
 	github.com/google/go-cmp v0.5.4
 	github.com/keybase/go-keychain v0.0.0-20211119201326-e02f34051621
 	github.com/sanity-io/litter v1.3.0
