@@ -44,4 +44,4 @@ using `gcloud` but does so much less. How to use:
 	metadata service from the MacOS KeyChain. The `gocloud show-meta` subcommand
 	will show if this is configured correctly.
 
-
+It's conceivable that I will rewrite this going forward.
