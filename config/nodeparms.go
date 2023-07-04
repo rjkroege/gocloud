@@ -5,20 +5,18 @@ package config
 import (
 	// TODO(rjk): bunch of stuffs
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
-	"io/ioutil"
 	"time"
 )
 
-
 type NodeMetadata struct {
-	Username string	    `json:"username"`
+	Username      string `json:"username"`
 	GitCredential string `json:"gitcredential"`
-	SshKey string `json:"sshkey"`
-	RcloneConfig string `json:"rcloneconfig"`
+	SshKey        string `json:"sshkey"`
+	RcloneConfig  string `json:"rcloneconfig"`
 }
-
 
 func GetNodeMetadata() (*NodeMetadata, error) {
 	nm, err := unifiedNodeMetadata()
@@ -60,14 +58,14 @@ func legacyNodeMetadata() (*NodeMetadata, error) {
 
 	rcloneconfig, err := readStringFromMetadata("rcloneconfig")
 	if err != nil {
-		return nil,  fmt.Errorf("can't get rcloneconfig %v", err)
+		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
 	}
 
 	return &NodeMetadata{
-		Username: username,
+		Username:      username,
 		GitCredential: gitcred,
-		SshKey: sshkey,
-		RcloneConfig: rcloneconfig,
+		SshKey:        sshkey,
+		RcloneConfig:  rcloneconfig,
 	}, nil
 
 }
@@ -76,11 +74,11 @@ func legacyNodeMetadata() (*NodeMetadata, error) {
 func readStringFromMetadata(entry string) (string, error) {
 	path := metabase + entry
 
-// Adjust this for the timeout.
-// This should be faster now.
-tr := &http.Transport{
-	ResponseHeaderTimeout: 500 * time.Millisecond,
-}
+	// Adjust this for the timeout.
+	// This should be faster now.
+	tr := &http.Transport{
+		ResponseHeaderTimeout: 500 * time.Millisecond,
+	}
 	client := &http.Client{Transport: tr}
 	req, err := http.NewRequest("GET", path, nil)
 	req.Header.Add("Metadata-Flavor", "Google")
@@ -98,10 +96,9 @@ tr := &http.Transport{
 
 const metabase = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 
-
 func RunningInGcp() bool {
-		if _, err := readStringFromMetadata("username"); err == nil {
-			return true
-		}
+	if _, err := readStringFromMetadata("username"); err == nil {
+		return true
+	}
 	return false
 }

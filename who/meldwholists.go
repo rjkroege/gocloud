@@ -6,7 +6,7 @@ import (
 )
 
 func TimestampWhoList(wl WhoList) {
-	for k, _ := range wl {
+	for k := range wl {
 		fi, err := os.Stat(k)
 		if err != nil {
 			delete(wl, k)
@@ -17,7 +17,7 @@ func TimestampWhoList(wl WhoList) {
 }
 
 func MergeWhoList(oldwl, newwl WhoList) {
-	for k, _ := range newwl {
+	for k := range newwl {
 		if _, ok := oldwl[k]; !ok {
 			oldwl[k] = newwl[k]
 		}

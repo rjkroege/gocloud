@@ -5,10 +5,10 @@ import (
 )
 
 func TestLocalNameSpace(t *testing.T) {
-	for _, tv := range []struct{
+	for _, tv := range []struct {
 		input string
-		want string
-	} {
+		want  string
+	}{
 		{
 			"root",
 			"/tmp/ns.root.:0",
