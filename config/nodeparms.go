@@ -1,9 +1,7 @@
 package config
 
-// Serializable parameters for transmission to the node.
 
 import (
-	// TODO(rjk): bunch of stuffs
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -11,6 +9,7 @@ import (
 	"time"
 )
 
+// NodeMetadata is serializable parameters for transmission to the node.
 type NodeMetadata struct {
 	Username      string `json:"username"`
 	GitCredential string `json:"gitcredential"`
@@ -38,7 +37,6 @@ func unifiedNodeMetadata() (*NodeMetadata, error) {
 // legacyNodeMetadata populates a NodeMetadata from the
 // discrete metadata entries on a node.
 func legacyNodeMetadata() (*NodeMetadata, error) {
-
 	username, err := readStringFromMetadata("username")
 	if err != nil {
 		return nil, fmt.Errorf("can't get username %v", err)
@@ -55,11 +53,13 @@ func legacyNodeMetadata() (*NodeMetadata, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't get sshkey %v", err)
 	}
+	log.Println("sshkey", sshkey)
 
 	rcloneconfig, err := readStringFromMetadata("rcloneconfig")
 	if err != nil {
 		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
 	}
+	log.Println("rcloneconfig", rcloneconfig)
 
 	return &NodeMetadata{
 		Username:      username,
