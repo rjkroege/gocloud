@@ -74,10 +74,13 @@ log.Println("latestimage", latestimage)
 		return nil, fmt.Errorf("can't make metadata: %v", err)
 	}
 
+	diskName := fmt.Sprintf("%s-root", instanceName)
+
 	instance := &compute.Instance{
 		Name:        instanceName,
 		Description: settings.Description(configName, instanceName),
 		MachineType: prefix + "/zones/" + zone + "/machineTypes/" + machinetype,
+
 
 		Disks: []*compute.AttachedDisk{
 			{
@@ -86,7 +89,7 @@ log.Println("latestimage", latestimage)
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					// TODO(rjk): compute something better
-					DiskName:    "ween-root",
+					DiskName:    diskName,
 					DiskSizeGb:  disksize,
 					SourceImage: imageURL,
 				},
