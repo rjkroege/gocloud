@@ -14,6 +14,7 @@ type NodeMetadata struct {
 	GitCredential string `json:"gitcredential"`
 	SshKey        string `json:"sshkey"`
 	RcloneConfig  string `json:"rcloneconfig"`
+	InstanceToken  string `json:"instancetoken"`
 }
 
 func GetNodeMetadata(client *http.Client) (*NodeMetadata, error) {
@@ -60,11 +61,18 @@ func legacyNodeMetadata(client *http.Client) (*NodeMetadata, error) {
 	}
 	log.Println("rcloneconfig", string(rcloneconfig))
 
+	instancetoken, err := readNodeMetadata("instancetoken", client)
+	if err != nil {
+		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
+	}
+	log.Println("instancetoken", string(instancetoken))
+
 	return &NodeMetadata{
 		Username:      string(username),
 		GitCredential: string(gitcred),
 		SshKey:        string(sshkey),
 		RcloneConfig:  string(rcloneconfig),
+		InstanceToken:  string(instancetoken),
 	}, nil
 
 }
