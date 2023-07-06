@@ -40,7 +40,7 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 		return fmt.Errorf("can't read proxied node metadata: %v", err)
 	}
 
-	gottoken := pnm.InstanceToken
+	gottoken := pnm["instancetoken"]
 	if gottoken != ni.Token {
 		return fmt.Errorf("Got token %q, want %q. Maybe this is an IP hijack?", gottoken, ni.Token)
 	}

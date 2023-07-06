@@ -8,73 +8,57 @@ import (
 	"time"
 )
 
-// NodeMetadata is serializable parameters for transmission to the node.
-type NodeMetadata struct {
-	Username      string `json:"username"`
-	GitCredential string `json:"gitcredential"`
-	SshKey        string `json:"sshkey"`
-	RcloneConfig  string `json:"rcloneconfig"`
-	InstanceToken  string `json:"instancetoken"`
-}
+// NodeMetadata is the metadata that we have communicated to the node.
+type NodeMetadata map[string]string
 
-func GetNodeMetadata(client *http.Client) (*NodeMetadata, error) {
-	nm, err := unifiedNodeMetadata(client)
-	if err == nil {
-		return nm, nil
-	}
-
-	nm, err = legacyNodeMetadata(client)
+func GetNodeMetadata(client *http.Client) (NodeMetadata, error) {
+	nm, err := addNodeMetadatav1(client)
 	if err != nil {
 		return nil, err
 	}
+
+	// This might error but we don't care. We just use the previous version.
+	addNodeMetadatav2(client, nm)
 	return nm, nil
 }
 
-func unifiedNodeMetadata(client *http.Client) (*NodeMetadata, error) {
-	return nil, fmt.Errorf("notimplemented")
+
+func addNodeMetadatav2(client *http.Client, nm NodeMetadata) {
+	// TODO(rjk): Populate this with the new path.
+	if err := addNodeMetadataImpl(client, nm, []string{
+		"githost",
+	}); err != nil {
+		nm["githost"] = "https://git.liqui.org/rjkroege/scripts.git"
+	}
 }
 
-// legacyNodeMetadata populates a NodeMetadata from the
+func addNodeMetadataImpl(client *http.Client, nm NodeMetadata, keys []string) error {
+	for _, k := range keys {
+		v, err := readNodeMetadata(k, client)
+		if err != nil {
+			return  fmt.Errorf("can't get %s %v", k, err)
+		}
+		log.Println(k, "->", v)
+		nm[k] = string(v)
+	}
+	return nil
+}
+
+// addNodeMetadatav1 populates a NodeMetadata from the
 // discrete metadata entries on a node.
-func legacyNodeMetadata(client *http.Client) (*NodeMetadata, error) {
-	username, err := readNodeMetadata("username", client)
-	if err != nil {
-		return nil, fmt.Errorf("can't get username %v", err)
+func addNodeMetadatav1(client *http.Client) (NodeMetadata, error) {
+	nm := make(NodeMetadata)
+
+	if err := addNodeMetadataImpl(client, nm, []string{
+		"username",
+		"gitcredential",
+		"sshkey",
+		"rcloneconfig",
+		"instancetoken",
+	}); err != nil {
+		return nil, err	
 	}
-	log.Println("username", string(username))
-
-	gitcred, err := readNodeMetadata("gitcredential", client)
-	if err != nil {
-		return nil, fmt.Errorf("can't get getcredential %v", err)
-	}
-	log.Println("gitcred", string(gitcred))
-
-	sshkey, err := readNodeMetadata("sshkey", client)
-	if err != nil {
-		return nil, fmt.Errorf("can't get sshkey %v", err)
-	}
-	log.Println("sshkey", string(sshkey))
-
-	rcloneconfig, err := readNodeMetadata("rcloneconfig", client)
-	if err != nil {
-		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
-	}
-	log.Println("rcloneconfig", string(rcloneconfig))
-
-	instancetoken, err := readNodeMetadata("instancetoken", client)
-	if err != nil {
-		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
-	}
-	log.Println("instancetoken", string(instancetoken))
-
-	return &NodeMetadata{
-		Username:      string(username),
-		GitCredential: string(gitcred),
-		SshKey:        string(sshkey),
-		RcloneConfig:  string(rcloneconfig),
-		InstanceToken:  string(instancetoken),
-	}, nil
-
+	return nm, nil
 }
 
 func NewNodeDirectMetadataClient() *http.Client {
