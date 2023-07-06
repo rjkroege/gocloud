@@ -61,6 +61,9 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	return nil
 }
 
+// TODO(rjk): Must refactor this to address the fact that I may want to do this over a
+// different transport/client combo.
+// So want to plumb the transport into the config top level interface.
 func readStingFromMetadata(entry string, sshclient *ssh.Client) (string, error) {
 	path := metabase + entry
 	client := &http.Client{

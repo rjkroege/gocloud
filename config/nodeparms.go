@@ -1,6 +1,5 @@
 package config
 
-
 import (
 	"fmt"
 	"io/ioutil"
@@ -17,87 +16,97 @@ type NodeMetadata struct {
 	RcloneConfig  string `json:"rcloneconfig"`
 }
 
-func GetNodeMetadata() (*NodeMetadata, error) {
-	nm, err := unifiedNodeMetadata()
+func GetNodeMetadata(client *http.Client) (*NodeMetadata, error) {
+	nm, err := unifiedNodeMetadata(client)
 	if err == nil {
 		return nm, nil
 	}
 
-	nm, err = legacyNodeMetadata()
+	nm, err = legacyNodeMetadata(client)
 	if err != nil {
 		return nil, err
 	}
 	return nm, nil
 }
 
-func unifiedNodeMetadata() (*NodeMetadata, error) {
+func unifiedNodeMetadata(client *http.Client) (*NodeMetadata, error) {
 	return nil, fmt.Errorf("notimplemented")
 }
 
 // legacyNodeMetadata populates a NodeMetadata from the
 // discrete metadata entries on a node.
-func legacyNodeMetadata() (*NodeMetadata, error) {
-	username, err := readStringFromMetadata("username")
+func legacyNodeMetadata(client *http.Client) (*NodeMetadata, error) {
+	username, err := readNodeMetadata("username", client)
 	if err != nil {
 		return nil, fmt.Errorf("can't get username %v", err)
 	}
-	log.Println("username", username)
+	log.Println("username", string(username))
 
-	gitcred, err := readStringFromMetadata("gitcredential")
+	gitcred, err := readNodeMetadata("gitcredential", client)
 	if err != nil {
 		return nil, fmt.Errorf("can't get getcredential %v", err)
 	}
-	log.Println("gitcred", gitcred)
+	log.Println("gitcred", string(gitcred))
 
-	sshkey, err := readStringFromMetadata("sshkey")
+	sshkey, err := readNodeMetadata("sshkey", client)
 	if err != nil {
 		return nil, fmt.Errorf("can't get sshkey %v", err)
 	}
-	log.Println("sshkey", sshkey)
+	log.Println("sshkey", string(sshkey))
 
-	rcloneconfig, err := readStringFromMetadata("rcloneconfig")
+	rcloneconfig, err := readNodeMetadata("rcloneconfig", client)
 	if err != nil {
 		return nil, fmt.Errorf("can't get rcloneconfig %v", err)
 	}
-	log.Println("rcloneconfig", rcloneconfig)
+	log.Println("rcloneconfig", string(rcloneconfig))
 
 	return &NodeMetadata{
-		Username:      username,
-		GitCredential: gitcred,
-		SshKey:        sshkey,
-		RcloneConfig:  rcloneconfig,
+		Username:      string(username),
+		GitCredential: string(gitcred),
+		SshKey:        string(sshkey),
+		RcloneConfig:  string(rcloneconfig),
 	}, nil
 
 }
 
-// TODO(rjk): Need to also write some kind of function to set the metadata.
-func readStringFromMetadata(entry string) (string, error) {
-	path := metabase + entry
-
-	// Adjust this for the timeout.
-	// This should be faster now.
+func NewNodeDirectMetadataClient() *http.Client {
+	// Timeout should reduce the time to discover that a Linux machine is not
+	// a GCP instance.
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 500 * time.Millisecond,
 	}
-	client := &http.Client{Transport: tr}
+	return  &http.Client{Transport: tr}
+}
+
+func NewNodeProxiedMetadataClient(sshtrans http.RoundTripper) *http.Client {
+	return &http.Client{
+		Transport: sshtrans,
+	}
+}
+
+// TODO(rjk): Need to also write some kind of function to set the metadata.
+func readNodeMetadata(entry string, client *http.Client) ([]byte, error) {
+	// TODO(rjk): Is there some kind of better http library for this?
+	path := metabase + entry
+
 	req, err := http.NewRequest("GET", path, nil)
 	req.Header.Add("Metadata-Flavor", "Google")
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("can't fetch metadata %v: %v", path, err)
+		return nil, fmt.Errorf("can't fetch metadata %v: %v", path, err)
 	}
 
 	buffy, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("can't read metadata body %v: %v", path, err)
+		return nil, fmt.Errorf("can't read metadata body %v: %v", path, err)
 	}
-	return string(buffy), nil
+	return buffy, nil
 }
 
 const metabase = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
 
-func RunningInGcp() bool {
-	if _, err := readStringFromMetadata("username"); err == nil {
+func RunningInGcp(client *http.Client) bool {
+	if _, err := readNodeMetadata("username", client); err == nil {
 		return true
 	}
 	return false
