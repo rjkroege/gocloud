@@ -29,6 +29,7 @@ func addNodeMetadatav2(client *http.Client, nm NodeMetadata) {
 		"githost",
 	}); err != nil {
 		nm["githost"] = "https://git.liqui.org/rjkroege/scripts.git"
+		log.Println("set githost to %q", nm["githost"])
 	}
 }
 
@@ -38,7 +39,7 @@ func addNodeMetadataImpl(client *http.Client, nm NodeMetadata, keys []string) er
 		if err != nil {
 			return  fmt.Errorf("can't get %s %v", k, err)
 		}
-		log.Println(k, "->", v)
+		log.Println(k, "->", string(v))
 		nm[k] = string(v)
 	}
 	return nil
@@ -84,7 +85,7 @@ func readNodeMetadata(entry string, client *http.Client) ([]byte, error) {
 	req, err := http.NewRequest("GET", path, nil)
 	req.Header.Add("Metadata-Flavor", "Google")
 	resp, err := client.Do(req)
-	if err != nil {
+	if err != nil || resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("can't fetch metadata %v: %v", path, err)
 	}
 
