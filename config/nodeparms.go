@@ -22,7 +22,6 @@ func GetNodeMetadata(client *http.Client) (NodeMetadata, error) {
 	return nm, nil
 }
 
-
 func addNodeMetadatav2(client *http.Client, nm NodeMetadata) {
 	// TODO(rjk): Populate this with the new path.
 	if err := addNodeMetadataImpl(client, nm, []string{
@@ -37,7 +36,7 @@ func addNodeMetadataImpl(client *http.Client, nm NodeMetadata, keys []string) er
 	for _, k := range keys {
 		v, err := readNodeMetadata(k, client)
 		if err != nil {
-			return  fmt.Errorf("can't get %s %v", k, err)
+			return fmt.Errorf("can't get %s %v", k, err)
 		}
 		log.Println(k, "->", string(v))
 		nm[k] = string(v)
@@ -57,7 +56,7 @@ func addNodeMetadatav1(client *http.Client) (NodeMetadata, error) {
 		"rcloneconfig",
 		"instancetoken",
 	}); err != nil {
-		return nil, err	
+		return nil, err
 	}
 	return nm, nil
 }
@@ -68,7 +67,7 @@ func NewNodeDirectMetadataClient() *http.Client {
 	tr := &http.Transport{
 		ResponseHeaderTimeout: 500 * time.Millisecond,
 	}
-	return  &http.Client{Transport: tr}
+	return &http.Client{Transport: tr}
 }
 
 func NewNodeProxiedMetadataClient(sshtrans http.RoundTripper) *http.Client {
