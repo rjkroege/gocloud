@@ -21,10 +21,10 @@ func parseDiskSize(szs string) (int64, error) {
 // NodeInfo holds all the state necessary for subsequent utilities to be
 // able to connect to the node.
 type NodeInfo struct {
-	Name  string
+	Name       string
 	ConfigName string
-	Addr  string
-	Token string
+	Addr       string
+	Token      string
 }
 
 // Ssh returns the address for an SSH connection to the node.
@@ -43,12 +43,12 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 	}
 
 	familyName := settings.InstanceTypes[configName].Family
-log.Println("familyName", familyName)
+	log.Println("familyName", familyName)
 	latestimage, err := findNewestStableImage(ctx, client, familyName)
 	if err != nil {
 		return nil, fmt.Errorf("can't find desired stable image", err)
 	}
-log.Println("latestimage", latestimage)
+	log.Println("latestimage", latestimage)
 
 	// TODO(rjk): reuse the service.
 	service, err := compute.New(client)
@@ -74,6 +74,8 @@ log.Println("latestimage", latestimage)
 		return nil, fmt.Errorf("can't make metadata: %v", err)
 	}
 
+	diskName := fmt.Sprintf("%s-root", instanceName)
+
 	instance := &compute.Instance{
 		Name:        instanceName,
 		Description: settings.Description(configName, instanceName),
@@ -86,7 +88,7 @@ log.Println("latestimage", latestimage)
 				Type:       "PERSISTENT",
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					// TODO(rjk): compute something better
-					DiskName:    "ween-root",
+					DiskName:    diskName,
 					DiskSizeGb:  disksize,
 					SourceImage: imageURL,
 				},
@@ -151,10 +153,10 @@ log.Println("latestimage", latestimage)
 			if err == nil && inst.Status == "RUNNING" {
 				// Yes, it's running and has an IP.
 				return &NodeInfo{
-					Name:  inst.Name,
+					Name:       inst.Name,
 					ConfigName: configName,
-					Addr:  ip,
-					Token: metadata["instancetoken"],
+					Addr:       ip,
+					Token:      metadata["instancetoken"],
 				}, nil
 			}
 			// Not in the right state yet. Try again.

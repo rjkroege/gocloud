@@ -9,7 +9,6 @@ import (
 	compute "google.golang.org/api/compute/v1"
 )
 
-
 func getInstances(settings *config.Settings) (*compute.InstanceList, error) {
 	_, client, err := NewAuthenticatedClient([]string{
 		compute.ComputeScope,
@@ -28,9 +27,8 @@ func getInstances(settings *config.Settings) (*compute.InstanceList, error) {
 	zone := settings.DefaultZone
 
 	// List the current instances.
-	return  service.Instances.List(projectId, zone).Do()
+	return service.Instances.List(projectId, zone).Do()
 }
-
 
 func List(settings *config.Settings) error {
 	res, err := getInstances(settings)
@@ -57,7 +55,7 @@ func List(settings *config.Settings) error {
 }
 
 func GetNodeIp(settings *config.Settings, wantednode string) (string, error) {
-	res, err  := getInstances(settings)
+	res, err := getInstances(settings)
 	if err != nil {
 		return "", fmt.Errorf("getting instance list failed: %v", err)
 	}

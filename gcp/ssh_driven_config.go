@@ -3,7 +3,6 @@ package gcp
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"os"
@@ -35,10 +34,13 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	// that an adversary could man-in-the-middle me is if a router between me and
 	// Google has been misconfigured and can forward traffic to an arbitrary
 	// third party. I must validate some kind of shared secret.
-	gottoken, err := readStingFromMetadata("instancetoken", client)
+	pnm, err := config.GetNodeMetadata(
+		config.NewNodeProxiedMetadataClient(NewSshProxiedTransport(client)))
 	if err != nil {
-		return fmt.Errorf("can't read the instancetoken: %v", err)
+		return fmt.Errorf("can't read proxied node metadata: %v", err)
 	}
+
+	gottoken := pnm["instancetoken"]
 	if gottoken != ni.Token {
 		return fmt.Errorf("Got token %q, want %q. Maybe this is an IP hijack?", gottoken, ni.Token)
 	}
@@ -59,25 +61,6 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 	}
 
 	return nil
-}
-
-func readStingFromMetadata(entry string, sshclient *ssh.Client) (string, error) {
-	path := metabase + entry
-	client := &http.Client{
-		Transport: NewSshProxiedTransport(sshclient),
-	}
-	req, err := http.NewRequest("GET", path, nil)
-	req.Header.Add("Metadata-Flavor", "Google")
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("can't fetch metadata %v: %v", path, err)
-	}
-
-	buffy, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("can't read metadata body %v: %v", path, err)
-	}
-	return string(buffy), nil
 }
 
 func NewSshProxiedTransport(client *ssh.Client) http.RoundTripper {

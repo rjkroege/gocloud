@@ -3,8 +3,8 @@ package who
 import (
 	"io/ioutil"
 	"os"
-	"testing"
 	"path/filepath"
+	"testing"
 	"time"
 )
 
@@ -30,11 +30,10 @@ func TestTimestampWhoList(t *testing.T) {
 	}
 	// Make a single file in the temp directory.
 	if _, err = os.Create(p2); err != nil {
-		t.Fatal("couldn't make a file",p2, "because", err)
+		t.Fatal("couldn't make a file", p2, "because", err)
 	}
 
 	now := time.Now()
-	
 
 	// Make an inputwholist
 	inputwholist := WhoList{
@@ -47,10 +46,10 @@ func TestTimestampWhoList(t *testing.T) {
 	if _, ok := inputwholist[p0]; ok {
 		t.Error("inputwholist should have p0 removed", inputwholist)
 	}
-	if ti, ok := inputwholist[p1]; !ok || now.Sub(ti) > time.Duration(10 * time.Second) {
-		t.Error("inputwholist should have p1 updated", inputwholist)		
+	if ti, ok := inputwholist[p1]; !ok || now.Sub(ti) > time.Duration(10*time.Second) {
+		t.Error("inputwholist should have p1 updated", inputwholist)
 	}
-	if _, ok := inputwholist[p2]; ok  {
-		t.Error("inputwholist should have not have added p2", inputwholist)	
+	if _, ok := inputwholist[p2]; ok {
+		t.Error("inputwholist should have not have added p2", inputwholist)
 	}
 }
