@@ -15,6 +15,7 @@ type InstanceConfig struct {
 	Description   string `json:"description,omitempty"`
 	UserDataFile  string `json:"userdatafile,omitempty"`
 	PostSshConfig string `json:"postsshconfig,omitempty"`
+	GitHost        string                    `json:"githost,omitempty"`
 }
 
 type Settings struct {
