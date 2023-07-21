@@ -54,6 +54,12 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	// There can be nulls in token so encode.
 	metas["instancetoken"] = base64.StdEncoding.EncodeToString(rawtoken)
 
+	// githost, read from the configuration file.
+	githost := settings.InstanceTypes[configName].GitHost	
+	if githost != "" {
+		metas["githost"] = githost
+	}
+
 	// gitcredential (read from the keychain)
 	if cred, err := settings.GitCredential(); err != nil {
 		fmt.Printf("can't add git credential to instance metadata because no git credential: %v", err)
