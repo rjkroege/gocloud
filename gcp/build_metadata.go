@@ -83,16 +83,11 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 		metas["rcloneconfig"] = string(rclonekey)
 	}
 
-	// instance configuration data is required
-	userdatapath := settings.InstanceTypes[configName].UserDataFile
-	if userdatapath == "" {
-		return nil, fmt.Errorf("instancetype %q didn't specify userdatafile", configName)
+	userdata := settings.UserData(configName)
+	if userdata == "" {
+		return nil, fmt.Errorf("userdata must be set")
 	}
-	userdata, err := ioutil.ReadFile(userdatapath)
-	if err != nil {
-		return nil, fmt.Errorf("can't read userdata file %q: %v", userdatapath, err)
-	}
-	metas["user-data"] = string(userdata)
+	metas["user-data"] = userdata
 
 	// Insert the kopia connect restoration code.
 	if kopiaauth, err := readKopiaConfiguration(); err != nil {

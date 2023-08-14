@@ -43,12 +43,10 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 	}
 
 	familyName := settings.InstanceTypes[configName].Family
-	log.Println("familyName", familyName)
 	latestimage, err := findNewestStableImage(ctx, client, familyName)
 	if err != nil {
 		return nil, fmt.Errorf("can't find desired stable image", err)
 	}
-	log.Println("latestimage", latestimage)
 
 	// TODO(rjk): reuse the service.
 	service, err := compute.New(client)
