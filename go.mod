@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	cloud.google.com/go v0.73.0
+	github.com/BurntSushi/toml v1.3.2
 	github.com/alecthomas/kong v0.6.1
 	github.com/google/go-cmp v0.5.4
 	github.com/keybase/go-keychain v0.0.0-20230523030712-b5615109f100

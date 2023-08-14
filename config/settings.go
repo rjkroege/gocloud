@@ -1,30 +1,31 @@
 package config
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/BurntSushi/toml"
 )
 
 type InstanceConfig struct {
-	Family        string `json:"family"`
-	Hardware      string `json:"hardware"`
-	DiskSize      string `json:"disksize,omitempty"`
-	Zone          string `json:"zone,omitempty"`
-	Description   string `json:"description,omitempty"`
-	UserDataFile  string `json:"userdatafile,omitempty"`
-	PostSshConfig string `json:"postsshconfig,omitempty"`
-	GitHost        string                    `json:"githost,omitempty"`
+	Family        string `toml:"family"`
+	Hardware      string `toml:"hardware"`
+	DiskSize      string `toml:"disksize,omitempty"`
+	Zone          string `toml:"zone,omitempty"`
+	Description   string `toml:"description,omitempty"`
+	UserDataFile  string `toml:"userdatafile,omitempty"`
+	PostSshConfig string `toml:"postsshconfig,omitempty"`
+	GitHost       string `toml:"githost,omitempty"`
 }
 
 type Settings struct {
-	DefaultZone       string                    `json:"defaultzone"`
-	ProjectId         string                    `json:"projectid"`
-	InstanceTypes     map[string]InstanceConfig `json:"instancetypes"`
-	SshPublicKeyFile  string                    `json:"sshpublickey,omitempty"`
-	SshPrivateKeyFile string                    `json:"sshprivatekey,omitempty"`
-	Credential        string                    `json:"credential,omitempty"`
+	DefaultZone       string                    `toml:"defaultzone"`
+	ProjectId         string                    `toml:"projectid"`
+	InstanceTypes     map[string]InstanceConfig `toml:"instance"`
+	SshPublicKeyFile  string                    `toml:"sshpublickey,omitempty"`
+	SshPrivateKeyFile string                    `toml:"sshprivatekey,omitempty"`
+	Credential        string                    `toml:"credential,omitempty"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -34,8 +35,8 @@ func Read(path string) (*Settings, error) {
 	}
 
 	settings := &Settings{}
-	decoder := json.NewDecoder(fd)
-	if err := decoder.Decode(settings); err != nil {
+	decoder := toml.NewDecoder(fd)
+	if _, err := decoder.Decode(settings); err != nil {
 		return nil, fmt.Errorf("error parsing config %q: %v", path, err)
 	}
 

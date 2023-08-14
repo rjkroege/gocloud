@@ -12,20 +12,18 @@ this but this was easy, predictable and cheap.
 * `gocloud`  tool to launch a GCP node without using `gcloud`. Smaller and faster than
 using `gcloud` but does so much less. How to use:
 
-	* make a configuration file in json format.
+	* make a configuration file in [TOML: Tom's Obvious Minimal Language](https://toml.io/en/) toml format
 
-		```javascript
-		{
-			"defaultzone": "your-preferred-zone",
-			"projectid": "your-gcp-project",
-			"instancetypes": {
-				"smallnodisk": {
-					"hardware": "e2-small",
-					"family": "your-favourite-image-family",
-					"userdatafile": "path-to-cloudconfig"
-				}
-			}
-		}
+		```toml
+		defaultzone = "us-east1-b"
+		projectid = "liquiorg"
+
+		[instance.smallnodisk]
+			hardware = "e2-small"
+			family = "cos-cloud"
+			userdatafile = "path to your couldconfig file name"
+			githost = "Git repository to checkout for system setup"
+			postsshconfig = "Script to run on node bringup"
 		```
 	
 	* Make one:
@@ -44,4 +42,3 @@ using `gcloud` but does so much less. How to use:
 	metadata service from the MacOS KeyChain. The `gocloud show-meta` subcommand
 	will show if this is configured correctly.
 
-It's conceivable that I will rewrite this going forward.
