@@ -11,7 +11,7 @@ import (
 type InstanceConfig struct {
 	Family        string `toml:"family"`
 	Hardware      string `toml:"hardware"`
-	DiskSize      string `toml:"disksize,omitempty"`
+	DiskSize      int64  `toml:"disksize,omitempty"`
 	Zone          string `toml:"zone,omitempty"`
 	Description   string `toml:"description,omitempty"`
 	UserDataFile  string `toml:"userdatafile,omitempty"`

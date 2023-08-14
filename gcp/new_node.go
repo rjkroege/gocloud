@@ -63,10 +63,6 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 
 	machinetype := settings.InstanceTypes[configName].Hardware
 
-	disksize, err := parseDiskSize(settings.InstanceTypes[configName].DiskSize)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create Compute service, bad disk size: %q %v", settings.InstanceTypes[configName].DiskSize, err)
-	}
 	// TODO(rjk): add disk type (e.g. flash, persistent, etc.)
 
 	metadata, err := makeMetadataObject(settings, configName)
@@ -89,7 +85,7 @@ func MakeNode(settings *config.Settings, configName, instanceName string) (*Node
 				InitializeParams: &compute.AttachedDiskInitializeParams{
 					// TODO(rjk): compute something better
 					DiskName:    diskName,
-					DiskSizeGb:  disksize,
+					DiskSizeGb:  settings.InstanceTypes[configName].DiskSize,
 					SourceImage: imageURL,
 				},
 			},

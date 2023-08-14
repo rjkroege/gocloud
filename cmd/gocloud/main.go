@@ -8,10 +8,12 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/rjkroege/gocloud/config"
 	"github.com/rjkroege/gocloud/gcp"
+	"github.com/sanity-io/litter"
 )
 
 var CLI struct {
-	ConfigFile string `type:"path" help:"Set alternate configuration file" default:"~/.config/gocloud/gocloud.json"`
+	ConfigFile string `type:"path" help:"Set alternate configuration file" default:"~/.config/gocloud/gocloud.toml"`
+	Debug      bool   `help:"Additional logging for debugging"`
 
 	Make struct {
 		Config string `arg name:"config" help:"Defined configuration for instance"`
@@ -48,21 +50,31 @@ func main() {
 
 	switch ctx.Command() {
 	case "ls":
-		log.Println("run ls")
-		log.Println(CLI.ConfigFile, settings)
+		if CLI.Debug {
+			log.Println("ls", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		if err := gcp.List(settings); err != nil {
 			fmt.Println("can't list nodes:", err)
 			os.Exit(-1)
 		}
 	case "ls-images":
-		log.Println("run lsimages")
-		log.Println("dumping configuration", CLI.ConfigFile, settings)
+		if CLI.Debug {
+			log.Println("lsimages", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		if err := gcp.ListImages(settings); err != nil {
 			fmt.Println("can't list images:", err)
 			os.Exit(-1)
 		}
 	case "make <config> <name>":
-		log.Println("run make")
+		if CLI.Debug {
+			log.Println("make", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		// TODO(rjk): There's probably some fancy Kong way to do this that's better.
 		if _, ok := settings.InstanceTypes[CLI.Make.Config]; !ok {
 			fmt.Printf("undefined instance type %q\n", CLI.Make.Config)
@@ -92,14 +104,21 @@ func main() {
 			fmt.Printf("can't update ssh for node %v: %v", ni, err)
 		}
 	case "del <node>":
-		log.Println("run del")
-		log.Println(CLI.Del.Node)
+		if CLI.Debug {
+			log.Println("del", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		if err := gcp.EndSession(settings, CLI.Del.Node); err != nil {
 			fmt.Printf("can't remove instance %s: %v", CLI.Del.Node, err)
 			os.Exit(-1)
 		}
 	case "show-meta <config>":
-		log.Println("run ShowMetadata")
+		if CLI.Debug {
+			log.Println("ShowMetadata", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		if _, ok := settings.InstanceTypes[CLI.ShowMeta.Config]; !ok {
 			fmt.Printf("undefined instance type %q\n", CLI.ShowMeta.Config)
 			os.Exit(-1)
@@ -109,8 +128,11 @@ func main() {
 			os.Exit(-1)
 		}
 	case "describe <name>":
-		log.Println("run DescribeInstance")
-		log.Println(CLI.ConfigFile, settings)
+		if CLI.Debug {
+			log.Println("DescribeInstance", "using", CLI.ConfigFile, ":")
+			litter.Dump(settings)
+		}
+
 		if err := gcp.DescribeInstance(settings, CLI.Describe.Name); err != nil {
 			fmt.Printf("can't describe %s: %v\n", CLI.Describe.Name, err)
 			os.Exit(-1)
