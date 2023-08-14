@@ -9,8 +9,8 @@ import (
 	"github.com/rjkroege/gocloud/config"
 	"github.com/rjkroege/gocloud/gcp"
 
-// For debugging
-"github.com/sanity-io/litter"
+	// For debugging
+	"github.com/sanity-io/litter"
 )
 
 var CLI struct {
@@ -49,11 +49,11 @@ func main() {
 		os.Exit(-1)
 	}
 
-// temp to see if the toml thing is working
+	// temp to see if the toml thing is working
 
 	litter.Dump(settings)
 
-return
+	return
 
 	switch ctx.Command() {
 	case "ls":

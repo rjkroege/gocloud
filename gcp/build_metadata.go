@@ -55,7 +55,7 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	metas["instancetoken"] = base64.StdEncoding.EncodeToString(rawtoken)
 
 	// githost, read from the configuration file.
-	githost := settings.InstanceTypes[configName].GitHost	
+	githost := settings.InstanceTypes[configName].GitHost
 	if githost != "" {
 		metas["githost"] = githost
 	}

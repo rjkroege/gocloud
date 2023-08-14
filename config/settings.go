@@ -1,12 +1,11 @@
 package config
 
 import (
-//	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
 
-"github.com/BurntSushi/toml"	
+	"github.com/BurntSushi/toml"
 )
 
 type InstanceConfig struct {
@@ -17,7 +16,7 @@ type InstanceConfig struct {
 	Description   string `toml:"description,omitempty"`
 	UserDataFile  string `toml:"userdatafile,omitempty"`
 	PostSshConfig string `toml:"postsshconfig,omitempty"`
-	GitHost        string                    `toml:"githost,omitempty"`
+	GitHost       string `toml:"githost,omitempty"`
 }
 
 type Settings struct {
