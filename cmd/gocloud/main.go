@@ -8,6 +8,9 @@ import (
 	"github.com/alecthomas/kong"
 	"github.com/rjkroege/gocloud/config"
 	"github.com/rjkroege/gocloud/gcp"
+
+// For debugging
+"github.com/sanity-io/litter"
 )
 
 var CLI struct {
@@ -45,6 +48,12 @@ func main() {
 		fmt.Println("Fatai:", err)
 		os.Exit(-1)
 	}
+
+// temp to see if the toml thing is working
+
+	litter.Dump(settings)
+
+return
 
 	switch ctx.Command() {
 	case "ls":
