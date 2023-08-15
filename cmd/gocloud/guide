@@ -5,6 +5,6 @@ X:gocloud/.*\.go: w
 go build
 go install
 
-{./gocloud ls-images }
+{./gocloud --debug ls-images }
 {./gocloud show-meta smallnodisk}
 {./gocloud --debug ls-images}
