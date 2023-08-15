@@ -14,9 +14,9 @@ type InstanceConfig struct {
 	DiskSize      int64  `toml:"disksize,omitempty"`
 	Zone          string `toml:"zone,omitempty"`
 	Description   string `toml:"description,omitempty"`
-	UserDataFile  string `toml:"userdatafile,omitempty"`
 	PostSshConfig string `toml:"postsshconfig,omitempty"`
 	GitHost       string `toml:"githost,omitempty"`
+	UserData      string `toml:"userdata,omitempty"`
 }
 
 type Settings struct {
@@ -26,6 +26,7 @@ type Settings struct {
 	SshPublicKeyFile  string                    `toml:"sshpublickey,omitempty"`
 	SshPrivateKeyFile string                    `toml:"sshprivatekey,omitempty"`
 	Credential        string                    `toml:"credential,omitempty"`
+	DefaultUserData   string                    `toml:"defaultuserdata,omitempty"`
 }
 
 func Read(path string) (*Settings, error) {
@@ -50,6 +51,13 @@ func (s *Settings) Zone(instancetype string) string {
 		return z.Zone
 	}
 	return s.DefaultZone
+}
+
+func (s *Settings) UserData(instancetype string) string {
+	if z, ok := s.InstanceTypes[instancetype]; ok && z.UserData != "" {
+		return z.UserData
+	}
+	return s.DefaultUserData
 }
 
 // UniqueFamilies returns the unique families used in settings.
