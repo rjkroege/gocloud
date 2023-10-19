@@ -4,6 +4,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"os/exec"
 )
@@ -22,5 +23,6 @@ func getCredential() (string, error) {
 		return "", fmt.Errorf("can't run keychain inquiry %v", err)
 	}
 
-	return string(data), nil
+	// Must remove the trailing newline if it's there.
+	return string(bytes.TrimSpace(data)), nil
 }
