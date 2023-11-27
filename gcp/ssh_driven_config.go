@@ -1,14 +1,21 @@
 package gcp
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"context"
 	"fmt"
+	"io"
+	"io/fs"
 	"net"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/rjkroege/gocloud/config"
 	"golang.org/x/crypto/ssh"
+
+	"log"
 )
 
 const metabase = "http://metadata.google.internal/computeMetadata/v1/instance/attributes/"
@@ -45,22 +52,7 @@ func ConfigureViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client
 		return fmt.Errorf("Got token %q, want %q. Maybe this is an IP hijack?", gottoken, ni.Token)
 	}
 
-	// Run mk to download and setup the node
-	session, err := client.NewSession()
-	if err != nil {
-		return fmt.Errorf("can't make an ssh execution session: %v", err)
-	}
-	session.Stdout = os.Stdout
-	session.Stderr = os.Stderr
-
-	cmd := settings.InstanceTypes[ni.ConfigName].PostSshConfig
-	if cmd != "" {
-		if err := session.Run(cmd); err != nil {
-			return fmt.Errorf("can't run %q: %v", cmd, err)
-		}
-	}
-
-	return nil
+	return InstallViaSsh(settings, ni, client)
 }
 
 func NewSshProxiedTransport(client *ssh.Client) http.RoundTripper {
@@ -70,4 +62,111 @@ func NewSshProxiedTransport(client *ssh.Client) http.RoundTripper {
 		return client.Dial(network, addr)
 	}
 	return dolly
+}
+
+func InstallViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client) error {
+	// Run tar on the remote to extract the copied binaries.
+	session, err := client.NewSession()
+	if err != nil {
+		return fmt.Errorf("can't make an ssh execution session: %v", err)
+	}
+	session.Stdout = os.Stdout
+	session.Stderr = os.Stderr
+
+	inpipe, err := session.StdinPipe()
+	if err != nil {
+		return fmt.Errorf("can't get an ssh in pipe: %v", err)
+	}
+
+	// tar up the scripts and binaries locally.
+	go func() {
+		defer inpipe.Close()
+		if err := TarGZTools(inpipe); err != nil {
+			// TODO(rjk): I think that I can do something better about exiting.
+			log.Println("can't tar: %v", err)
+		}
+	}()
+
+	// TODO(rjk): Should I take these parameters from the toml file?
+	cmd := "cd / ; tar xzf -"
+	if err := session.Run(cmd); err != nil {
+		return fmt.Errorf("can't extract %q: %v", cmd, err)
+	}
+
+	// Start the supplementary services.
+	// TODO(rjk): Consider controlling this from the toml file?
+	for _, cmd := range []string{
+		"sudo /usr/local/bin/sessionender",
+		"sudo /usr/local/bin/cpud -pk /usr/local/keys/pk",
+	} {
+		session, err := client.NewSession()
+		if err != nil {
+			return fmt.Errorf("can't make an ssh execution session for %q: %v", cmd, err)
+		}
+		// Do the commands keep running?
+		if err := session.Start(cmd); err != nil {
+			return fmt.Errorf("can't Start %q: %v", cmd, err)
+		}
+	}
+	return nil
+}
+
+type Paths struct {
+	From    string
+	To      string
+	Pattern string
+}
+
+func TarGZTools(w io.Writer) error {
+	zfd := gzip.NewWriter(w)
+	defer zfd.Close()
+	tw := tar.NewWriter(zfd)
+	defer tw.Close()
+
+	for _, ptho := range []Paths{
+		{
+			From:    "/usr/local/script",
+			To:      "/usr/local/script",
+			Pattern: "*",
+		},
+		{
+			From:    "/Users/rjkroege/wrks/archive/bins/linux/amd64",
+			To:      "/usr/local/bin",
+			Pattern: "*",
+		},
+	} {
+		dfs := os.DirFS(ptho.From)
+		files, err := fs.Glob(dfs, ptho.Pattern)
+		if err != nil {
+			return fmt.Errorf("can't glob %q: %v", filepath.Join(ptho.From, ptho.Pattern), err)
+		}
+
+		for _, f := range files {
+			file := filepath.Join(ptho.From, f)
+			fi, err := os.Stat(file)
+			if err != nil {
+				return fmt.Errorf("can't stat %q: %v", file, err)
+			}
+
+			hdr := &tar.Header{
+				Name: filepath.Join(ptho.To, f),
+				Mode: int64(fi.Mode()),
+				Size: fi.Size(),
+			}
+			if err := tw.WriteHeader(hdr); err != nil {
+				return fmt.Errorf("fatal %v", err)
+			}
+
+			fd, err := os.Open(file)
+			if err != nil {
+				return fmt.Errorf("can't Open %q: %v", file, err)
+			}
+			defer fd.Close()
+
+			if _, err := io.Copy(tw, fd); err != nil {
+				return fmt.Errorf("can't copy %q: %v", file, err)
+			}
+		}
+	}
+	return nil
 }

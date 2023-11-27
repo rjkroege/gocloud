@@ -51,7 +51,6 @@ func addNodeMetadatav1(client *http.Client) (NodeMetadata, error) {
 
 	if err := addNodeMetadataImpl(client, nm, []string{
 		"username",
-		"gitcredential",
 		"sshkey",
 		"rcloneconfig",
 		"instancetoken",

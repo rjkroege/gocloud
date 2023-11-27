@@ -35,6 +35,7 @@ func convertMapToGcpFormat(metas map[string]string) *compute.Metadata {
 }
 
 // makeMetadataObject makes a Go map of metadata key-value pairs.
+// TODO(rjk): In a cpu-aware world, additional settings can be removed.
 func makeMetadataObject(settings *config.Settings, configName string) (map[string]string, error) {
 	metas := make(map[string]string)
 
@@ -58,13 +59,6 @@ func makeMetadataObject(settings *config.Settings, configName string) (map[strin
 	githost := settings.InstanceTypes[configName].GitHost
 	if githost != "" {
 		metas["githost"] = githost
-	}
-
-	// gitcredential (read from the keychain)
-	if cred, err := settings.GitCredential(); err != nil {
-		fmt.Printf("can't add git credential to instance metadata because no git credential: %v", err)
-	} else {
-		metas["gitcredential"] = cred
 	}
 
 	// ssh key (always needed)
