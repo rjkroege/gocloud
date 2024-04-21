@@ -114,7 +114,7 @@ func InstallViaSsh(settings *config.Settings, ni *NodeInfo, client *ssh.Client) 
 type Paths struct {
 	From    string
 	To      string
-	Pattern string
+	Pattern []string
 }
 
 func TarGZTools(w io.Writer) error {
@@ -123,22 +123,27 @@ func TarGZTools(w io.Writer) error {
 	tw := tar.NewWriter(zfd)
 	defer tw.Close()
 
+	// TODO(rjk): This configuration should come from the TOML file.
 	for _, ptho := range []Paths{
 		{
 			From:    "/usr/local/script",
 			To:      "/usr/local/script",
-			Pattern: "*",
+			Pattern: []string{"*"},
 		},
 		{
 			From:    "/Users/rjkroege/wrks/archive/bins/linux/amd64",
 			To:      "/usr/local/bin",
-			Pattern: "*",
+			Pattern: []string{"cpud", "eza", "gotop",  "rc", "sessionender", "mk", "p", "sam"},
 		},
 	} {
 		dfs := os.DirFS(ptho.From)
-		files, err := fs.Glob(dfs, ptho.Pattern)
-		if err != nil {
-			return fmt.Errorf("can't glob %q: %v", filepath.Join(ptho.From, ptho.Pattern), err)
+		files := make([]string, 0, 20)
+		for _, g := range ptho.Pattern {
+			fs, err := fs.Glob(dfs, g)
+			if err != nil {
+				return fmt.Errorf("can't glob %q: %v", filepath.Join(ptho.From, g), err)
+			}
+			files = append(files, fs...)
 		}
 
 		for _, f := range files {
